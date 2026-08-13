@@ -5,60 +5,52 @@ PASSWORD_SECRET = "1619"
 password = st.text_input("Δώσε τον κωδικό πρόσβασης:", type="password")
 
 if password == PASSWORD_SECRET:
-    # Εδώ είναι η ΜΟΝΑΔΙΚΗ ΛΙΣΤΑ με τους κήπους σου
     if "my_gardens" not in st.session_state:
         st.session_state.my_gardens = [
             {"name": "Αχιλλέας", "day": "Δευτέρα", "freq": "Εβδομαδιαίος"},
-            {"name": "Ξανθος", "day": "Δευτέρα", "freq": "Εβδομαδιαίος"},
             {"name": "Ιωαννιδης", "day": "Δευτέρα", "freq": "Εβδομάδα Α"},
-            {"name": "Αιγίνης", "day": "Δευτέρα", "freq": "Εβδομαδιαίος"},
-            {"name": "Τεγεας", "day": "Δευτέρα", "freq": "Εβδομαδιαίος"},
-            {"name": "Βουλα", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Γλυφαδα", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Αγιος Δημήτριος 1", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Αγιος Δημήτριος 2", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
-            {"name": "βερα λω φαληρο", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Σταθης", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Ανθουσων", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Μενιδι", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Μακης", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Αλέξανδρος", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Μεταμόρφωση", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"}, # <--- Προστέθηκε
-            {"name": "Μετόχιο", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Μαρουσι", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Μικράς Ασιας 1", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Μικρας Ασιας 2", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "καβαλας", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Ροζελα", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "βερα λω ψυχικό", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Αλικη", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
-            {"name": "Τάκης", "day": "Παρασκευή", "freq": "Εβδομαδιαίος"},
-            {"name": "Γεωργία", "day": "Παρασκευή", "freq": "Εβδομαδιαίος"},
-            {"name": "Μάριος", "day": "Παρασκευή", "freq": "Εβδομαδιαίος"},
+            {"name": "Μεταμόρφωση", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
+            # ... πρόσθεσε όσους θέλεις εδώ
         ]
 
-    week = st.radio("🗓️ Επιλογή Εβδομάδας:", ["Εβδομάδα Α", "Εβδομάδα Β"], horizontal=True)
-
-    # Φιλτράρισμα και εμφάνιση
+    week = st.radio("🗓️ Επιλογή:", ["Εβδομάδα Α", "Εβδομάδα Β"], horizontal=True)
     days = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"]
+
+    # Εμφάνιση Προγράμματος με επιλογές
     for day in days:
         with st.expander(f"📌 {day}"):
-            for g in st.session_state.my_gardens:
-                if g["day"] == day:
-                    if g["freq"] == "Εβδομαδιαίος" or g["freq"] == week:
-                        st.checkbox(f"{g['name']} ({g['freq']})", key=f"{week}_{g['name']}")
+            for idx, g in enumerate(st.session_state.my_gardens):
+                if g["day"] == day and (g["freq"] == "Εβδομαδιαίος" or g["freq"] == week):
+                    col1, col2, col3 = st.columns([0.6, 0.2, 0.2])
+                    col1.write(f"🌿 {g['name']} ({g['freq']})")
+                    
+                    if col2.button("🗑️", key=f"del_{idx}"):
+                        st.session_state.my_gardens.pop(idx)
+                        st.rerun()
+                    
+                    if col3.button("✏️", key=f"edit_{idx}"):
+                        st.session_state.editing = idx
+                        st.rerun()
 
-    # Προσθήκη νέου (Μέσα από την εφαρμογή!)
-    st.markdown("---")
-    with st.expander("➕ Προσθήκη νέου κήπου"):
-        n = st.text_input("Όνομα:")
-        d = st.selectbox("Ημέρα:", days)
-        f = st.selectbox("Συχνότητα:", ["Εβδομαδιαίος", "Εβδομάδα Α", "Εβδομάδα Β"])
-        if st.button("Αποθήκευση"):
-            st.session_state.my_gardens.append({"name": n, "day": d, "freq": f})
+    # Επεξεργασία επιλεγμένου κήπου
+    if "editing" in st.session_state:
+        idx = st.session_state.editing
+        g = st.session_state.my_gardens[idx]
+        st.subheader(f"Επεξεργασία: {g['name']}")
+        new_name = st.text_input("Όνομα:", g["name"])
+        new_day = st.selectbox("Ημέρα:", days, index=days.index(g["day"]))
+        new_freq = st.selectbox("Συχνότητα:", ["Εβδομαδιαίος", "Εβδομάδα Α", "Εβδομάδα Β"], index=["Εβδομαδιαίος", "Εβδομάδα Α", "Εβδομάδα Β"].index(g["freq"]))
+        
+        if st.button("Αποθήκευση Αλλαγών"):
+            st.session_state.my_gardens[idx] = {"name": new_name, "day": new_day, "freq": new_freq}
+            del st.session_state.editing
             st.rerun()
+
+    # Εργαλείο αποθήκευσης μόνιμα
+    st.markdown("---")
+    if st.button("💾 Δημιουργία κώδικα για μόνιμη αποθήκευση"):
+        st.code(f"st.session_state.my_gardens = {st.session_state.my_gardens}")
+        st.info("Κάνε Copy τον παραπάνω κώδικα και αντικατάστησε το παλιό `st.session_state.my_gardens` στο GitHub!")
 
 elif password != "":
     st.error("❌ Λάθος κωδικός!")
-
-
