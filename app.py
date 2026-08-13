@@ -6,7 +6,7 @@ if st.sidebar.button("⚠️ Καθαρισμός δεδομένων (Reset)"):
     st.session_state.clear()
     st.rerun()
 
-st.title("🌿 Πρόγραμμα Κήπων")
+st.title("🌿 Πρόγραμμα Κήπων 2026")
 
 PASSWORD_SECRET = "1619"
 password = st.text_input("🔑 Δώσε τον κωδικό πρόσβασης:", type="password")
@@ -15,61 +15,81 @@ ALL_WEEKS = ["Εβδομάδα Α", "Εβδομάδα Β", "Εβδομάδα Γ"
 FORTNIGHT_AC = ["Εβδομάδα Α", "Εβδομάδα Γ"] 
 FORTNIGHT_BD = ["Εβδομάδα Β", "Εβδομάδα Δ"]
 DAYS = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"]
-MONTHS = [
-    "Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος",
-    "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος",
-    "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"
-]
+
+MONTHS_SHORT = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαι", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 
 if password == PASSWORD_SECRET:
     if "my_gardens" not in st.session_state:
+        # Αρχικοποίηση - Όλοι οι μήνες ξεκινάνε ως μη πληρωμένοι (False)
+        default_paid_months = {m: False for m in MONTHS_SHORT}
+        
         st.session_state.my_gardens = [
             # --- ΔΕΥΤΕΡΑ ---
-            {"name": "Αχιλλέας", "day": "Δευτέρα", "weeks": ALL_WEEKS, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Ξανθος", "day": "Δευτέρα", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Αιγίνης", "day": "Δευτέρα", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Τεγεας", "day": "Δευτέρα", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Ιωαννιδης", "day": "Δευτέρα", "weeks": ["Εβδομάδα Α"], "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Πετραν", "day": "Δευτέρα", "weeks": ["Εβδομάδα Β"], "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Αγίας Λαύρας", "day": "Δευτέρα", "weeks": ["Εβδομάδα Γ"], "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "28ης", "day": "Δευτέρα", "weeks": ["Εβδομάδα Δ"], "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
+            {"name": "Αχιλλέας", "day": "Δευτέρα", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Ξανθος", "day": "Δευτέρα", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Αιγίνης", "day": "Δευτέρα", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Τεγεας", "day": "Δευτέρα", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Ιωαννιδης", "day": "Δευτέρα", "weeks": ["Εβδομάδα Α"], "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Πετραν", "day": "Δευτέρα", "weeks": ["Εβδομάδα Β"], "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Αγίας Λαύρας", "day": "Δευτέρα", "weeks": ["Εβδομάδα Γ"], "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "28ης", "day": "Δευτέρα", "weeks": ["Εβδομάδα Δ"], "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
             
             # --- ΤΡΙΤΗ ---
-            {"name": "Γλυφαδα", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Αγιος Δημήτριος 1", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Αγιος Δημήτριος 2", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Βουλα", "day": "Τρίτη", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "βερα λω φαληρο", "day": "Τρίτη", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Πετρούλα", "day": "Τρίτη", "weeks": ["Εβδομάδα Α"], "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
+            {"name": "Γλυφαδα", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Αγιος Δημήτριος 1", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Αγιος Δημήτριος 2", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Βουλα", "day": "Τρίτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "βερα λω φαληρο", "day": "Τρίτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Πετρούλα", "day": "Τρίτη", "weeks": ["Εβδομάδα Α"], "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
             
             # --- ΤΕΤΑΡΤΗ ---
-            {"name": "Σταθης", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Μενιδι", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Ανθουσων", "day": "Τετάρτη", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Μακης", "day": "Τετάρτη", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Αλέξανδρος", "day": "Τετάρτη", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Άνω Λιόσια", "day": "Τετάρτη", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Δίπλα από Στάθη", "day": "Τετάρτη", "weeks": ["Εβδομάδα Β"], "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Μεταμόρφωση", "day": "Τετάρτη", "weeks": ["Εβδομάδα Γ"], "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
+            {"name": "Σταθης", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Μενιδι", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Ανθουσων", "day": "Τετάρτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Μακης", "day": "Τετάρτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Αλέξανδρος", "day": "Τετάρτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Άνω Λιόσια", "day": "Τετάρτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Δίπλα από Στάθη", "day": "Τετάρτη", "weeks": ["Εβδομάδα Β"], "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Μεταμόρφωση", "day": "Τετάρτη", "weeks": ["Εβδομάδα Γ"], "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
             
             # --- ΠΕΜΠΤΗ ---
-            {"name": "Μετόχιο", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Μαρουσι", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Μικράς Ασιας 1", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Μικρας Ασιας 2", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "καβαλας", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Ροζελα", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "βερα λω ψυχικό", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
-            {"name": "Αλικη", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
+            {"name": "Μετόχιο", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Μαρουσι", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Μικράς Ασιας 1", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Μικρας Ασιας 2", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "καβαλας", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Ροζελα", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "βερα λω ψυχικό", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
+            {"name": "Αλικη", "day": "Πέμπτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
             
             # --- ΠΑΡΑΣΚΕΥΗ ---
-            {"name": "Μάριος", "day": "Παρασκευή", "weeks": FORTNIGHT_AC, "notes": "", "paid": False, "paid_month": "Ιανουάριος", "is_extra": False},
+            {"name": "Μάριος", "day": "Παρασκευή", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
         ]
 
     # 🔍 Μπάρα Αναζήτησης
     search_query = st.text_input("🔍 **Αναζήτηση Κήπου / Εργασίας:**", placeholder="Γράψε όνομα κήπου...")
 
     week = st.radio("🗓️ **Επίλεξε Εβδομάδα:**", ALL_WEEKS, horizontal=True)
+
+    # Συνάρτηση εμφάνισης πλέγματος μηνών 2026
+    def render_month_picker(garden_idx, key_prefix):
+        g = st.session_state.my_gardens[garden_idx]
+        pm = g.get("paid_months", {m: False for m in MONTHS_SHORT})
+        
+        paid_list = [m for m, status in pm.items() if status]
+        status_text = "🟢 Πληρωμένοι: " + ", ".join(paid_list) if paid_list else "🔴 Καμία πληρωμή"
+        
+        st.markdown(f"**💶 Πληρωμές 2026:** _{status_text}_")
+        
+        # 4 στήλες x 3 γραμμές για τους 12 μήνες
+        cols = st.columns(4)
+        for i, m in enumerate(MONTHS_SHORT):
+            col = cols[i % 4]
+            is_checked = pm.get(m, False)
+            new_val = col.checkbox(m, value=is_checked, key=f"{key_prefix}_{m}_{garden_idx}")
+            if new_val != is_checked:
+                st.session_state.my_gardens[garden_idx]["paid_months"][m] = new_val
+                st.rerun()
 
     if search_query.strip():
         st.subheader(f"🔎 Αποτελέσματα για: '{search_query}'")
@@ -81,18 +101,8 @@ if password == PASSWORD_SECRET:
                 badge = "⚡ (Εξτραδάκι)" if g.get("is_extra") else ""
                 st.write(f"📌 **{g['name']}** {badge} | Ημέρα: **{g['day']}** | Εβδ: **{weeks_str}**")
                 
-                # Πληρωμή & Μήνας
-                c_p1, c_p2 = st.columns([1, 2])
-                with c_p1:
-                    paid_status = st.checkbox("🟢 Πληρώθηκε", value=g.get("paid", False), key=f"search_paid_{idx}")
-                    st.session_state.my_gardens[idx]["paid"] = paid_status
-                with c_p2:
-                    current_m = g.get("paid_month", "Ιανουάριος")
-                    m_idx = MONTHS.index(current_m) if current_m in MONTHS else 0
-                    sel_m = st.selectbox("📅 Μήνας Πληρωμής:", MONTHS, index=m_idx, key=f"search_m_{idx}")
-                    st.session_state.my_gardens[idx]["paid_month"] = sel_m
+                render_month_picker(idx, "search")
                 
-                # Σημείωση
                 note = st.text_area("📝 Σημειώσεις:", value=g.get("notes", ""), key=f"search_note_{idx}", height=70)
                 st.session_state.my_gardens[idx]["notes"] = note
                 st.divider()
@@ -112,31 +122,10 @@ if password == PASSWORD_SECRET:
                     weeks_str = ", ".join([w.replace("Εβδομάδα ", "") for w in g.get('weeks', [])])
                     extra_tag = " ⚡ [ΕΞΤΡΑΔΑΚΙ]" if g.get("is_extra") else ""
                     
-                    # Checkbox Ολοκλήρωσης
                     st.checkbox(f"🌿 **{g['name']}**{extra_tag} (Εβδ: {weeks_str})", key=f"chk_{week}_{day}_{idx}_{g['name']}")
                     
-                    # Κατάσταση Πληρωμής & Μήνας
-                    current_paid = g.get("paid", False)
-                    current_month = g.get("paid_month", "Ιανουάριος")
-                    status_label = f"🟢 Πληρώθηκε ({current_month})" if current_paid else f"🔴 Εκκρεμεί ({current_month})"
-                    
-                    c1, c2 = st.columns([1.2, 1.8])
-                    with c1:
-                        new_paid = st.checkbox(f"💶 {status_label}", value=current_paid, key=f"paid_{week}_{day}_{idx}_{g['name']}")
-                        if new_paid != current_paid:
-                            st.session_state.my_gardens[idx]["paid"] = new_paid
-                            st.rerun()
-                    with c2:
-                        month_idx = MONTHS.index(current_month) if current_month in MONTHS else 0
-                        new_month = st.selectbox(
-                            "📅 Μήνας:", 
-                            MONTHS, 
-                            index=month_idx, 
-                            key=f"m_sel_{week}_{day}_{idx}_{g['name']}"
-                        )
-                        if new_month != current_month:
-                            st.session_state.my_gardens[idx]["paid_month"] = new_month
-                            st.rerun()
+                    # Εμφάνιση Μηνών Πληρωμής
+                    render_month_picker(idx, f"main_{week}_{day}")
 
                     # Σημειώσεις
                     user_note = st.text_area(
@@ -168,29 +157,16 @@ if password == PASSWORD_SECRET:
             new_day = st.selectbox("Ημέρα:", DAYS, index=DAYS.index(g["day"]))
             new_weeks = st.multiselect("Εβδομάδες:", ALL_WEEKS, default=g.get("weeks", ALL_WEEKS))
             new_notes = st.text_area("Σημειώσεις:", value=g.get("notes", ""))
-            
-            c_ed1, c_ed2 = st.columns(2)
-            with c_ed1:
-                new_paid = st.checkbox("🟢 Πληρώθηκε", value=g.get("paid", False))
-            with c_ed2:
-                cur_m = g.get("paid_month", "Ιανουάριος")
-                m_i = MONTHS.index(cur_m) if cur_m in MONTHS else 0
-                new_paid_month = st.selectbox("Μήνας Πληρωμής:", MONTHS, index=m_i)
-                
             new_extra = st.checkbox("⚡ Είναι έκτακτο / εξτραδάκι", value=g.get("is_extra", False))
             
             c_save, c_cancel = st.columns(2)
             if c_save.button("✅ Αποθήκευση"):
                 if new_weeks:
-                    st.session_state.my_gardens[idx] = {
-                        "name": new_name,
-                        "day": new_day,
-                        "weeks": new_weeks,
-                        "notes": new_notes,
-                        "paid": new_paid,
-                        "paid_month": new_paid_month,
-                        "is_extra": new_extra
-                    }
+                    st.session_state.my_gardens[idx]["name"] = new_name
+                    st.session_state.my_gardens[idx]["day"] = new_day
+                    st.session_state.my_gardens[idx]["weeks"] = new_weeks
+                    st.session_state.my_gardens[idx]["notes"] = new_notes
+                    st.session_state.my_gardens[idx]["is_extra"] = new_extra
                     del st.session_state.editing
                     st.rerun()
             if c_cancel.button("❌ Ακύρωση"):
@@ -204,7 +180,6 @@ if password == PASSWORD_SECRET:
         extra_day = st.selectbox("Ημέρα:", DAYS, key="ex_day")
         extra_weeks = st.multiselect("Εβδομάδες που αφορά:", ALL_WEEKS, default=[week], key="ex_weeks")
         extra_notes = st.text_area("Σημειώσεις:", key="ex_notes")
-        extra_month = st.selectbox("Μήνας Πληρωμής:", MONTHS, key="ex_month")
         
         if st.button("➕ Προσθήκη Εξτραδακίου"):
             if extra_name.strip() and extra_weeks:
@@ -213,8 +188,7 @@ if password == PASSWORD_SECRET:
                     "day": extra_day,
                     "weeks": extra_weeks,
                     "notes": extra_notes,
-                    "paid": False,
-                    "paid_month": extra_month,
+                    "paid_months": {m: False for m in MONTHS_SHORT},
                     "is_extra": True
                 })
                 st.rerun()
@@ -225,7 +199,6 @@ if password == PASSWORD_SECRET:
         add_day = st.selectbox("Ημέρα:", DAYS, key="add_day")
         add_weeks = st.multiselect("Εβδομάδες:", ALL_WEEKS, default=ALL_WEEKS, key="add_weeks")
         add_notes = st.text_area("Σημειώσεις:", key="add_notes")
-        add_month = st.selectbox("Μήνας Πληρωμής:", MONTHS, key="add_month")
         
         if st.button("➕ Προσθήκη Κήπου"):
             if add_name.strip() and add_weeks:
@@ -234,8 +207,7 @@ if password == PASSWORD_SECRET:
                     "day": add_day,
                     "weeks": add_weeks,
                     "notes": add_notes,
-                    "paid": False,
-                    "paid_month": add_month,
+                    "paid_months": {m: False for m in MONTHS_SHORT},
                     "is_extra": False
                 })
                 st.rerun()
