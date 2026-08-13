@@ -4,7 +4,7 @@ import os
 import calendar
 from datetime import datetime
 
-st.set_page_config(page_title="Πρόγραμμα Κήπων", page_icon="🌿", layout="wide")
+st.set_page_config(page_title="Πρόγραμμα Κήπων", page_icon="🌿")
 
 DATA_FILE = "gardens_data.json"
 PASSWORD_SECRET = "1619"
@@ -15,6 +15,17 @@ FORTNIGHT_BD = ["Εβδομάδα Β", "Εβδομάδα Δ"]
 DAYS_GREEK = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο", "Κυριακή"]
 MONTHS_SHORT = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαι", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 MONTHS_FULL = ["Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος", "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"]
+
+# 🛠️ Συνάρτηση υπολογισμού εβδομάδας μήνα (Α, Β, Γ, Δ)
+def get_week_name(day_num):
+    if day_num <= 7:
+        return "Εβδομάδα Α"
+    elif day_num <= 14:
+        return "Εβδομάδα Β"
+    elif day_num <= 21:
+        return "Εβδομάδα Γ"
+    else:
+        return "Εβδομάδα Δ"
 
 # 📁 Αποθήκευση & Φόρτωση
 def save_data():
@@ -29,7 +40,6 @@ def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             content = json.load(f)
-            # Συμβατότητα με παλαιότερη μορφή
             if isinstance(content, list):
                 return content, []
             return content.get("my_gardens", []), content.get("extra_events", [])
@@ -58,7 +68,7 @@ def get_default_gardens():
         
         # --- ΤΕΤΑΡΤΗ ---
         {"name": "Σταθης", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy(), "is_extra": False},
-        {"name": "Μενιδι", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_notes": "", "paid_months": default_paid.copy(), "is_extra": False},
+        {"name": "Μενιδι", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy(), "is_extra": False},
         {"name": "Ανθουσων", "day": "Τετάρτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy(), "is_extra": False},
         {"name": "Μακης", "day": "Τετάρτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy(), "is_extra": False},
         {"name": "Αλέξανδρος", "day": "Τετάρτη", "weeks": FORTNIGHT_BD, "notes": "", "paid_months": default_paid.copy(), "is_extra": False},
@@ -87,7 +97,7 @@ if st.sidebar.button("⚠️ Επαναφορά Αρχικών Δεδομένω�
     save_data()
     st.rerun()
 
-st.title("🌿 Πρόγραμμα & Ημερολόγιο Κήπων 2026")
+st.title("🌿 Πρόγραμμα Κήπων 2026")
 
 password = st.text_input("🔑 Δώσε τον κωδικό πρόσβασης:", type="password")
 
@@ -98,78 +108,19 @@ if password == PASSWORD_SECRET:
         st.session_state.extra_events = saved_e if saved_e is not None else []
         save_data()
 
-    # Επιλογή Προβολής: Εβδομαδιαίο Πρόγραμμα ή Μηνιαίο Ημερολόγιο
-    view_mode = st.radio("📌 **Επίλεξε Προβολή:**", ["📅 Μηνιαίο Ημερολόγιο & Εξτραδάκια", "📋 Εβδομαδιαίο Πρόγραμμα Κήπων"], horizontal=True)
+    view_mode = st.radio("📌 **Επίλεξε Προβολή:**", ["📋 Εβδομαδιαίο Πρόγραμμα", "📅 Ημερολόγιο Μήνα & Εξτραδάκια"], horizontal=True)
 
-    if view_mode == "📅 Μηνιαίο Ημερολόγιο & Εξτραδάκια":
-        st.header("📅 Ημερολόγιο & Έκτακτα Ραντεβού")
-        
-        col_m, col_y = st.columns(2)
-        # Προεπιλογή Αύγουστος 2026 (index 7)
-        selected_month_num = col_m.selectbox("Μήνας:", range(1, 13), index=7, format_func=lambda x: MONTHS_FULL[x-1])
-        selected_year = col_y.number_input("Έτος:", value=2026, step=1)
-
-        st.markdown(f"### 🗓️ {MONTHS_FULL[selected_month_num-1]} {selected_year}")
-
-        # ⚡ Φόρμα Προσθήκης Έκτακτου Ραντεβού
-        with st.expander("⚡ **Προσθήκη Εξτραδακίου με Ημερομηνία & Ώρα**", expanded=True):
-            c1, c2, c3 = st.columns([2, 1, 1])
-            ex_date = c1.date_input("Ημερομηνία:", datetime(selected_year, selected_month_num, 21))
-            ex_time = c2.time_input("Ώρα:", datetime.strptime("10:00", "%H:%M").time())
-            ex_title = c3.text_input("Περιγραφή / Όνομα:")
-            ex_note = st.text_area("📝 Σημείωση (προαιρετικά):", height=60, key="cal_ex_note")
-
-            if st.button("➕ Αποθήκευση στο Ημερολόγιο"):
-                if ex_title.strip():
-                    new_event = {
-                        "date": ex_date.strftime("%Y-%m-%d"),
-                        "time": ex_time.strftime("%H:%M"),
-                        "title": ex_title,
-                        "notes": ex_note
-                    }
-                    st.session_state.extra_events.append(new_event)
-                    save_data()
-                    st.success(f"Προστέθηκε: {ex_title} στις {ex_date.strftime('%d/%m/%Y')} ώρα {ex_time.strftime('%H:%M')}")
-                    st.rerun()
-
-        st.divider()
-
-        # Εμφάνιση Ημερών Μήνα
-        cal = calendar.monthcalendar(selected_year, selected_month_num)
-        
-        for week in cal:
-            cols = st.columns(7)
-            for day_idx in range(7):
-                day_num = week[day_idx]
-                if day_num != 0:
-                    day_str = f"{selected_year}-{selected_month_num:02d}-{day_num:02d}"
-                    greek_day_name = DAYS_GREEK[day_idx]
-                    
-                    with cols[day_idx]:
-                        st.markdown(f"**{day_num} {MONTHS_SHORT[selected_month_num-1]}**\n_{greek_day_name}_")
-                        
-                        # Βρες εξτραδάκια για αυτή τη μέρα
-                        day_events = [e for e in st.session_state.extra_events if e["date"] == day_str]
-                        
-                        for ev_idx, ev in enumerate(day_events):
-                            st.info(f"⏰ **{ev['time']}**\n⚡ **{ev['title']}**\n_{ev.get('notes', '')}_")
-                            if st.button("🗑️", key=f"del_ev_{day_str}_{ev_idx}"):
-                                st.session_state.extra_events.remove(ev)
-                                save_data()
-                                st.rerun()
-
-    else:
-        # --- ΕΒΔΟΜΑΔΙΑΙΟ ΠΡΟΓΡΑΜΜΑ (ΠΡΟΗΓΟΥΜΕΝΗ ΠΡΟΒΟΛΗ) ---
-        search_query = st.text_input("🔍 **Αναζήτηση Κήπου / Εργασίας:**", placeholder="Γράψε όνομα κήπου...")
+    if view_mode == "📋 Εβδομαδιαίο Πρόγραμμα":
+        search_query = st.text_input("🔍 **Αναζήτηση Κήπου:**", placeholder="Γράψε όνομα κήπου...")
         week = st.radio("🗓️ **Επίλεξε Εβδομάδα:**", ALL_WEEKS, horizontal=True)
 
         def render_month_picker(garden_idx, key_prefix):
             g = st.session_state.my_gardens[garden_idx]
             pm = g.get("paid_months", {})
             paid_list = [m for m in MONTHS_SHORT if pm.get(m, False)]
-            status_text = "🟢 Πληρωμένοι: " + ", ".join(paid_list) if paid_list else "🔴 Καμία πληρωμή"
+            status_text = "🟢 " + ", ".join(paid_list) if paid_list else "🔴 Καμία πληρωμή"
             
-            st.markdown(f"**💶 Πληρωμές 2026:** _{status_text}_")
+            st.markdown(f"**💶 Πληρωμές:** _{status_text}_")
             
             for row in range(0, 12, 3):
                 cols = st.columns(3)
@@ -203,9 +154,33 @@ if password == PASSWORD_SECRET:
                     if g["day"] == day and week in g.get("weeks", [])
                 ]
                 
-                with st.expander(f"📌 {day} ({len(matching_gardens)} κήποι/εργασίες)"):
-                    if not matching_gardens:
-                        st.write("*Δεν υπάρχουν κήποι ή εργασίες.*")
+                # ⚡ Βρες εξτραδάκια ημερολογίου που ανήκουν σε αυτή τη μέρα και αυτή την εβδομάδα!
+                matching_extras = []
+                for ev in st.session_state.extra_events:
+                    try:
+                        ev_dt = datetime.strptime(ev["date"], "%Y-%m-%d")
+                        ev_day_name = DAYS_GREEK[ev_dt.weekday()]
+                        ev_week_name = get_week_name(ev_dt.day)
+                        
+                        if ev_day_name == day and ev_week_name == week:
+                            matching_extras.append(ev)
+                    except ValueError:
+                        pass
+
+                total_items = len(matching_gardens) + len(matching_extras)
+                badge_text = f" ⚡ [{len(matching_extras)} έκτακτα]" if matching_extras else ""
+                
+                with st.expander(f"📌 {day} ({total_items} εργασίες){badge_text}"):
+                    # Εμφάνιση Έκτακτων Εργασιών πρώτα
+                    if matching_extras:
+                        st.markdown("### ⚡ Έκτακτα Ραντεβού Ημερολογίου:")
+                        for ex_ev in matching_extras:
+                            st.info(f"⏰ **{ex_ev['time']}** - **{ex_ev['title']}** ({ex_ev['date']})\n\n_{ex_ev.get('notes', '')}_")
+                        st.divider()
+
+                    # Εμφάνιση Τακτικών Κήπων
+                    if not matching_gardens and not matching_extras:
+                        st.write("*Δεν υπάρχουν κήποι ή έκτακτες εργασίες.*")
                     for idx, g in matching_gardens:
                         weeks_str = ", ".join([w.replace("Εβδομάδα ", "") for w in g.get('weeks', [])])
                         st.checkbox(f"🌿 **{g['name']}** (Εβδ: {weeks_str})", key=f"chk_{week}_{day}_{idx}_{g['name']}")
@@ -228,6 +203,65 @@ if password == PASSWORD_SECRET:
                             st.rerun()
                         if col2.button("🗑️ Διαγραφή", key=f"del_{day}_{idx}"):
                             st.session_state.my_gardens.pop(idx)
+                            save_data()
+                            st.rerun()
+                        st.divider()
+
+    else:
+        # --- ΗΜΕΡΟΛΟΓΙΟ ΜΗΝΑ ---
+        st.subheader("📅 Ημερολόγιο & Έκτακτα Ραντεβού")
+        
+        col_m, col_y = st.columns(2)
+        selected_month_num = col_m.selectbox("Μήνας:", range(1, 13), index=7, format_func=lambda x: MONTHS_FULL[x-1])
+        selected_year = col_y.number_input("Έτος:", value=2026, step=1)
+
+        # ⚡ Φόρμα Προσθήκης Έκτακτου Ραντεβού
+        with st.expander("➕ **Προσθήκη Νέου Εξτραδακίου**", expanded=True):
+            ex_date = st.date_input("Ημερομηνία:", datetime(selected_year, selected_month_num, 21))
+            ex_time = st.time_input("Ώρα:", datetime.strptime("10:00", "%H:%M").time())
+            ex_title = st.text_input("Περιγραφή / Όνομα:")
+            ex_note = st.text_area("📝 Σημείωση (προαιρετικά):", height=60, key="cal_ex_note")
+
+            if st.button("✅ Αποθήκευση στο Ημερολόγιο"):
+                if ex_title.strip():
+                    new_event = {
+                        "date": ex_date.strftime("%Y-%m-%d"),
+                        "time": ex_time.strftime("%H:%M"),
+                        "title": ex_title,
+                        "notes": ex_note
+                    }
+                    st.session_state.extra_events.append(new_event)
+                    save_data()
+                    st.success("Προστέθηκε επιτυχώς!")
+                    st.rerun()
+
+        st.divider()
+
+        num_days = calendar.monthrange(selected_year, selected_month_num)[1]
+
+        for day_num in range(1, num_days + 1):
+            day_dt = datetime(selected_year, selected_month_num, day_num)
+            day_str = day_dt.strftime("%Y-%m-%d")
+            greek_day_name = DAYS_GREEK[day_dt.weekday()]
+            week_label = get_week_name(day_num)
+            
+            day_events = [e for e in st.session_state.extra_events if e["date"] == day_str]
+            
+            badge = f" ⚡ [{len(day_events)} εξτραδάκι/α]" if day_events else ""
+            label = f"📆 {day_num} {MONTHS_SHORT[selected_month_num-1]} ({greek_day_name}) - [{week_label}]{badge}"
+
+            with st.expander(label, expanded=bool(day_events)):
+                if not day_events:
+                    st.write("_Δεν υπάρχει κάποιο εξτραδάκι για αυτή τη μέρα._")
+                else:
+                    for ev_idx, ev in enumerate(day_events):
+                        st.markdown(f"⏰ **Ώρα: {ev['time']}**")
+                        st.markdown(f"⚡ **{ev['title']}**")
+                        if ev.get("notes"):
+                            st.caption(f"📝 {ev['notes']}")
+                        
+                        if st.button("🗑️ Διαγραφή Εξτραδακίου", key=f"del_ev_{day_str}_{ev_idx}"):
+                            st.session_state.extra_events.remove(ev)
                             save_data()
                             st.rerun()
                         st.divider()
