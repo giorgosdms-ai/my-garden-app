@@ -4,7 +4,7 @@ import os
 import calendar
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Πρόγραμμα Κήπων", page_icon="🌿")
+st.set_page_config(page_title="Πρόγραμμα Κήπων", page_icon="🌿", layout="wide")
 
 DATA_FILE = "gardens_data.json"
 PASSWORD_SECRET = "1619"
@@ -16,7 +16,7 @@ DAYS_GREEK = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", 
 MONTHS_SHORT = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαι", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 MONTHS_FULL = ["Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος", "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"]
 
-# 🛠️ Συνάρτηση υπολογισμού εβδομάδας μήνα (Α, Β, Γ, Δ) βάσει ημέρας μήνα
+# 🛠️ Συνάρτηση υπολογισμού εβδομάδας μήνα (Α, Β, Γ, Δ)
 def get_week_name(day_num):
     if day_num <= 7:
         return "Εβδομάδα Α"
@@ -77,15 +77,13 @@ if password == PASSWORD_SECRET:
     view_mode = st.radio("📌 **Επίλεξε Προβολή:**", ["📋 Εβδομαδιαίο Πρόγραμμα", "📅 Ημερολόγιο Μήνα & Εξτραδάκια"], horizontal=True)
 
     if view_mode == "📋 Εβδομαδιαίο Πρόγραμμα":
-        st.subheader("🗓️ Εβδομαδιαίο Πρόγραμμα με Ημερομηνίες")
+        st.subheader("🗓️ Εβδομαδιαίο Πρόγραμμα")
         
-        # Επιλογή ημερομηνίας αναφοράς (προεπιλογή η σημερινή)
+        # Επιλογή ημερομηνίας αναφοράς
         ref_date = st.date_input("📆 **Επίλεξε Ημερομηνία για να δεις την Εβδομάδα της:**", datetime.now())
-        
-        # Υπολογισμός Δευτέρας της επιλεγμένης εβδομάδας
         monday_date = ref_date - timedelta(days=ref_date.weekday())
         
-        st.info(f"📅 Εβδομάδα από **{monday_date.strftime('%d/%m/%Y')}** έως **{(monday_date + timedelta(days=6)).strftime('%d/%m/%Y')}**")
+        st.info(f"📅 Εβδομάδα: **{monday_date.strftime('%d/%m/%Y')}** έως **{(monday_date + timedelta(days=6)).strftime('%d/%m/%Y')}**")
 
         search_query = st.text_input("🔍 **Αναζήτηση Κήπου:**", placeholder="Γράψε όνομα κήπου...")
 
@@ -119,52 +117,51 @@ if password == PASSWORD_SECRET:
                     render_month_picker(idx, "search")
                     st.divider()
         else:
-            # Προβολή των 7 ημερών της συγκεκριμένης εβδομάδας
+            # ✨ ΚΑΘΑΡΗ ΠΡΟΒΟΛΗ ΟΛΩΝ ΤΩΝ ΗΜΕΡΩΝ ΑΝΟΙΧΤΑ
             for i in range(6): # Δευτέρα έως Σάββατο
                 current_day_date = monday_date + timedelta(days=i)
                 date_str = current_day_date.strftime("%Y-%m-%d")
                 greek_day_name = DAYS_GREEK[i]
                 week_code = get_week_name(current_day_date.day)
 
-                # 1. Βρες τακτικούς κήπους
+                # 1. Τακτικοί κήποι
                 matching_gardens = [
                     (idx, g) for idx, g in enumerate(st.session_state.my_gardens)
                     if g["day"] == greek_day_name and week_code in g.get("weeks", [])
                 ]
 
-                # 2. Βρες έκτακτα ραντεβού που ορίστηκαν ΑΚΡΙΒΩΣ για αυτή την ημερομηνία
+                # 2. Έκτακτα ραντεβού
                 matching_extras = [
                     ev for ev in st.session_state.extra_events
                     if ev["date"] == date_str
                 ]
 
-                total_items = len(matching_gardens) + len(matching_extras)
-                extra_badge = f" ⚡ [{len(matching_extras)} έκτακτα]" if matching_extras else ""
-                
-                header_title = f"📌 {greek_day_name} {current_day_date.strftime('%d/%m')} - ({week_code}){extra_badge}"
+                # Τίτλος Ημέρας (Καθαρός & Μεγάλος)
+                st.markdown(f"### 📌 {greek_day_name} {current_day_date.strftime('%d/%m')} <small>({week_code})</small>", unsafe_allow_html=True)
 
-                with st.expander(header_title, expanded=bool(matching_extras)):
-                    # Εμφάνιση Έκτακτων Εργασιών Πρώτα
-                    if matching_extras:
-                        st.markdown("⚡ **Έκτακτες Εργασίες Ημερομηνίας:**")
-                        for ex in matching_extras:
-                            st.warning(f"⏰ **{ex['time']}** | **{ex['title']}**\n\n_{ex.get('notes', '')}_")
-                        st.divider()
+                # ⚡ Εμφάνιση Έκτακτων Εργασιών
+                if matching_extras:
+                    for ex in matching_extras:
+                        st.warning(f"⚡ **Έκτακτο ({ex['time']}):** **{ex['title']}**" + (f" — _{ex['notes']}_" if ex.get('notes') else ""))
 
-                    # Εμφάνιση Τακτικών Κήπων
-                    if not matching_gardens and not matching_extras:
-                        st.write("*Δεν υπάρχουν προγραμματισμένες εργασίες.*")
-
+                # 🌿 Εμφάνιση Τακτικών Κήπων
+                if not matching_gardens and not matching_extras:
+                    st.caption("_Δεν υπάρχουν προγραμματισμένες εργασίες_")
+                else:
                     for idx, g in matching_gardens:
-                        weeks_str = ", ".join([w.replace("Εβδομάδα ", "") for w in g.get('weeks', [])])
-                        st.checkbox(f"🌿 **{g['name']}**", key=f"chk_{date_str}_{idx}_{g['name']}")
-                        render_month_picker(idx, f"main_{date_str}")
+                        col_chk, col_info = st.columns([1, 4])
+                        col_chk.checkbox("Done", key=f"chk_{date_str}_{idx}_{g['name']}", label_visibility="collapsed")
+                        col_info.markdown(f"🌿 **{g['name']}**")
                         
-                        user_note = st.text_area("📝 Σημειώσεις:", value=g.get("notes", ""), key=f"note_{date_str}_{idx}", height=70)
-                        if user_note != g.get("notes", ""):
-                            st.session_state.my_gardens[idx]["notes"] = user_note
-                            save_data()
-                        st.divider()
+                        # Προαιρετικές σημειώσεις
+                        with st.expander(f"📝 Σημειώσεις / Πληρωμές ({g['name']})", expanded=False):
+                            render_month_picker(idx, f"main_{date_str}")
+                            user_note = st.text_area("Σημείωση:", value=g.get("notes", ""), key=f"note_{date_str}_{idx}", height=65)
+                            if user_note != g.get("notes", ""):
+                                st.session_state.my_gardens[idx]["notes"] = user_note
+                                save_data()
+
+                st.markdown("---")
 
     else:
         # --- ΗΜΕΡΟΛΟΓΙΟ ΜΗΝΑ ---
