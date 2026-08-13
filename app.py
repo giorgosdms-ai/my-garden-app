@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Πρόγραμμα Κήπων", page_icon="🌿")
 
-# Κουμπί επαναφοράς στην αριστερή μπάρα (αν ποτέ χρειαστεί)
+# Κουμπί επαναφοράς στην αριστερή μπάρα
 if st.sidebar.button("⚠️ Καθαρισμός δεδομένων (Reset)"):
     st.session_state.clear()
     st.rerun()
@@ -25,19 +25,25 @@ if password == PASSWORD_SECRET:
             {"name": "Ιωαννιδης", "day": "Δευτέρα", "freq": "Εβδομάδα Α"},
             {"name": "Αιγίνης", "day": "Δευτέρα", "freq": "Εβδομαδιαίος"},
             {"name": "Τεγεας", "day": "Δευτέρα", "freq": "Εβδομαδιαίος"},
+            {"name": "Πετραν", "day": "Δευτέρα", "freq": "Μία φορά τον μήνα"},
+            {"name": "Αγίας Λαύρας", "day": "Δευτέρα", "freq": "Μία φορά τον μήνα"},
+            {"name": "28ης", "day": "Δευτέρα", "freq": "Μία φορά τον μήνα"},
             # Τρίτη
             {"name": "Βουλα", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
             {"name": "Γλυφαδα", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
             {"name": "Αγιος Δημήτριος 1", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
             {"name": "Αγιος Δημήτριος 2", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
             {"name": "βερα λω φαληρο", "day": "Τρίτη", "freq": "Εβδομαδιαίος"},
+            {"name": "Πετρούλα", "day": "Τρίτη", "freq": "Μία φορά τον μήνα"},
             # Τετάρτη
             {"name": "Σταθης", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
+            {"name": "Δίπλα από Στάθη", "day": "Τετάρτη", "freq": "Μία φορά τον μήνα"},
             {"name": "Ανθουσων", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
             {"name": "Μενιδι", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
             {"name": "Μακης", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
             {"name": "Αλέξανδρος", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
             {"name": "Μεταμόρφωση", "day": "Τετάρτη", "freq": "Εβδομαδιαίος"},
+            {"name": "Άνω Λιόσια", "day": "Τετάρτη", "freq": "Εβδομάδα Β"},
             # Πέμπτη
             {"name": "Μετόχιο", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
             {"name": "Μαρουσι", "day": "Πέμπτη", "freq": "Εβδομαδιαίος"},
@@ -50,28 +56,33 @@ if password == PASSWORD_SECRET:
             # Παρασκευή
             {"name": "Τάκης", "day": "Παρασκευή", "freq": "Εβδομαδιαίος"},
             {"name": "Γεωργία", "day": "Παρασκευή", "freq": "Εβδομαδιαίος"},
-            {"name": "Μάριος", "day": "Παρασκευή", "freq": "Εβδομαδιαίος"},
+            {"name": "Μάριος", "day": "Παρασκευή", "freq": "Μία φορά τον μήνα"},
         ]
 
-    # Επιλογή Εβδομάδας
-    week = st.radio("🗓️ **Επίλεξε Εβδομάδα:**", ["Εβδομάδα Α", "Εβδομάδα Β"], horizontal=True)
+    # Επιλογή Προβολής (Προστέθηκε και το "Μία φορά τον μήνα")
+    week = st.radio("🗓️ **Επίλεξε Προβολή:**", ["Εβδομάδα Α", "Εβδομάδα Β", "Μία φορά τον μήνα"], horizontal=True)
     days = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"]
 
-    # Εμφάνιση ανά ημέρα
+    # Λογική Φιλτραρίσματος
     for day in days:
-        matching_gardens = [
-            (idx, g) for idx, g in enumerate(st.session_state.my_gardens)
-            if g["day"] == day and (g["freq"] == "Εβδομαδιαίος" or g["freq"] == week or g["freq"] == "Μία φορά τον μήνα")
-        ]
+        matching_gardens = []
+        for idx, g in enumerate(st.session_state.my_gardens):
+            if g["day"] == day:
+                # Αν ο χρήστης επέλεξε "Μία φορά τον μήνα" πάνω
+                if week == "Μία φορά τον μήνα":
+                    if g["freq"] == "Μία φορά τον μήνα":
+                        matching_gardens.append((idx, g))
+                # Αν επέλεξε Εβδομάδα Α ή Β
+                else:
+                    if g["freq"] == "Εβδομαδιαίος" or g["freq"] == week or g["freq"] == "Μία φορά τον μήνα":
+                        matching_gardens.append((idx, g))
         
         with st.expander(f"📌 {day} ({len(matching_gardens)} κήποι)"):
             if not matching_gardens:
-                st.write("*Δεν υπάρχουν κήποι για αυτή την ημέρα.*")
+                st.write("*Δεν υπάρχουν κήποι.*")
             for idx, g in matching_gardens:
-                # Checkbox για σημείωση
                 st.checkbox(f"🌿 {g['name']} ({g['freq']})", key=f"chk_{week}_{day}_{idx}_{g['name']}")
                 
-                # Κουμπιά Διαχείρισης
                 col1, col2 = st.columns(2)
                 if col1.button("✏️ Αλλαγή", key=f"edit_{day}_{idx}"):
                     st.session_state.editing = idx
