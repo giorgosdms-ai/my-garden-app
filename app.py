@@ -16,11 +16,11 @@ FORTNIGHT_AC = ["Εβδομάδα Α", "Εβδομάδα Γ"]
 FORTNIGHT_BD = ["Εβδομάδα Β", "Εβδομάδα Δ"]
 DAYS = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"]
 
+# Σταθερή λίστα μηνών με τη σωστή σειρά
 MONTHS_SHORT = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαι", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 
 if password == PASSWORD_SECRET:
     if "my_gardens" not in st.session_state:
-        # Αρχικοποίηση - Όλοι οι μήνες ξεκινάνε ως μη πληρωμένοι (False)
         default_paid_months = {m: False for m in MONTHS_SHORT}
         
         st.session_state.my_gardens = [
@@ -66,28 +66,29 @@ if password == PASSWORD_SECRET:
             {"name": "Μάριος", "day": "Παρασκευή", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid_months.copy(), "is_extra": False},
         ]
 
-    # 🔍 Μπάρα Αναζήτησης
     search_query = st.text_input("🔍 **Αναζήτηση Κήπου / Εργασίας:**", placeholder="Γράψε όνομα κήπου...")
-
     week = st.radio("🗓️ **Επίλεξε Εβδομάδα:**", ALL_WEEKS, horizontal=True)
 
-    # Συνάρτηση εμφάνισης πλέγματος μηνών 2026
+    # Συνάρτηση για προβολή μηνών με εγγυημένη σωστή σειρά
     def render_month_picker(garden_idx, key_prefix):
         g = st.session_state.my_gardens[garden_idx]
-        pm = g.get("paid_months", {m: False for m in MONTHS_SHORT})
+        pm = g.get("paid_months", {})
         
-        paid_list = [m for m, status in pm.items() if status]
+        # Διατήρηση σωστής σειράς μηνών
+        paid_list = [m for m in MONTHS_SHORT if pm.get(m, False)]
         status_text = "🟢 Πληρωμένοι: " + ", ".join(paid_list) if paid_list else "🔴 Καμία πληρωμή"
         
         st.markdown(f"**💶 Πληρωμές 2026:** _{status_text}_")
         
-        # 4 στήλες x 3 γραμμές για τους 12 μήνες
+        # Εμφάνιση 4 στήλες x 3 γραμμές με τη σωστή χρονική σειρά
         cols = st.columns(4)
         for i, m in enumerate(MONTHS_SHORT):
             col = cols[i % 4]
             is_checked = pm.get(m, False)
             new_val = col.checkbox(m, value=is_checked, key=f"{key_prefix}_{m}_{garden_idx}")
             if new_val != is_checked:
+                if "paid_months" not in st.session_state.my_gardens[garden_idx]:
+                    st.session_state.my_gardens[garden_idx]["paid_months"] = {x: False for x in MONTHS_SHORT}
                 st.session_state.my_gardens[garden_idx]["paid_months"][m] = new_val
                 st.rerun()
 
