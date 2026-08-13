@@ -58,7 +58,7 @@ if password == PASSWORD_SECRET:
             {"name": "Αλικη", "day": "Πέμπτη", "weeks": FORTNIGHT_BD},
             
             # --- ΠΑΡΑΣΚΕΥΗ ---
-            {"name": "Μάριος", "day": "Παρασκευή", "weeks": ["Εβδομάδα Δ"]},
+            {"name": "Μάριος", "day": "Παρασκευή", "weeks": FORTNIGHT_AC},
         ]
 
     week = st.radio("🗓️ **Επίλεξε Εβδομάδα:**", ALL_WEEKS, horizontal=True)
