@@ -16,7 +16,6 @@ FORTNIGHT_AC = ["Εβδομάδα Α", "Εβδομάδα Γ"]
 FORTNIGHT_BD = ["Εβδομάδα Β", "Εβδομάδα Δ"]
 DAYS = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"]
 
-# Σταθερή λίστα μηνών με τη σωστή σειρά
 MONTHS_SHORT = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαι", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 
 if password == PASSWORD_SECRET:
@@ -69,28 +68,30 @@ if password == PASSWORD_SECRET:
     search_query = st.text_input("🔍 **Αναζήτηση Κήπου / Εργασίας:**", placeholder="Γράψε όνομα κήπου...")
     week = st.radio("🗓️ **Επίλεξε Εβδομάδα:**", ALL_WEEKS, horizontal=True)
 
-    # Συνάρτηση για προβολή μηνών με εγγυημένη σωστή σειρά
+    # Νέα συνάρτηση προβολής: Φτιάχνει γραμμές ανά 3 μήνες για να διατηρείται η σειρά και στο κινητό
     def render_month_picker(garden_idx, key_prefix):
         g = st.session_state.my_gardens[garden_idx]
         pm = g.get("paid_months", {})
         
-        # Διατήρηση σωστής σειράς μηνών
         paid_list = [m for m in MONTHS_SHORT if pm.get(m, False)]
         status_text = "🟢 Πληρωμένοι: " + ", ".join(paid_list) if paid_list else "🔴 Καμία πληρωμή"
         
         st.markdown(f"**💶 Πληρωμές 2026:** _{status_text}_")
         
-        # Εμφάνιση 4 στήλες x 3 γραμμές με τη σωστή χρονική σειρά
-        cols = st.columns(4)
-        for i, m in enumerate(MONTHS_SHORT):
-            col = cols[i % 4]
-            is_checked = pm.get(m, False)
-            new_val = col.checkbox(m, value=is_checked, key=f"{key_prefix}_{m}_{garden_idx}")
-            if new_val != is_checked:
-                if "paid_months" not in st.session_state.my_gardens[garden_idx]:
-                    st.session_state.my_gardens[garden_idx]["paid_months"] = {x: False for x in MONTHS_SHORT}
-                st.session_state.my_gardens[garden_idx]["paid_months"][m] = new_val
-                st.rerun()
+        # Εμφάνιση σε 4 γραμμές των 3 μηνών (για να βγαίνουν 100% με τη σωστή σειρά στο κινητό)
+        for row in range(0, 12, 3):
+            cols = st.columns(3)
+            for col_idx in range(3):
+                m_idx = row + col_idx
+                if m_idx < 12:
+                    m = MONTHS_SHORT[m_idx]
+                    is_checked = pm.get(m, False)
+                    new_val = cols[col_idx].checkbox(m, value=is_checked, key=f"{key_prefix}_{m}_{garden_idx}")
+                    if new_val != is_checked:
+                        if "paid_months" not in st.session_state.my_gardens[garden_idx]:
+                            st.session_state.my_gardens[garden_idx]["paid_months"] = {x: False for x in MONTHS_SHORT}
+                        st.session_state.my_gardens[garden_idx]["paid_months"][m] = new_val
+                        st.rerun()
 
     if search_query.strip():
         st.subheader(f"🔎 Αποτελέσματα για: '{search_query}'")
