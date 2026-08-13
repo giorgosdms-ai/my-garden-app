@@ -15,41 +15,30 @@ if password == PASSWORD_SECRET:
     week = st.radio("🗓️ Επιλογή:", ["Εβδομάδα Α", "Εβδομάδα Β"], horizontal=True)
     days = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"]
 
-    for day in days:
-        with st.expander(f"📌 {day}"):
-            for idx, g in enumerate(st.session_state.my_gardens):
-                if g["day"] == day and (g["freq"] == "Εβδομαδιαίος" or g["freq"] == week):
-                    # Εμφάνιση ονόματος
-                    st.write(f"🌿 **{g['name']}** ({g['freq']})")
-                    
-                    # Κουμπιά σε πιο φαρδιές στήλες για να φαίνονται σίγουρα
-                    col1, col2 = st.columns(2)
-                    if col1.button("🗑️ Διαγραφή", key=f"del_{day}_{idx}"):
-                        st.session_state.my_gardens.pop(idx)
-                        st.rerun()
-                    if col2.button("✏️ Επεξεργασία", key=f"edit_{day}_{idx}"):
-                        st.session_state.editing = idx
-                        st.rerun()
-                    st.divider()
+    # Εμφάνιση
+    for g in st.session_state.my_gardens:
+        if g["freq"] == "Εβδομαδιαίος" or g["freq"] == week:
+            st.markdown(f"---")
+            st.write(f"🌿 **{g['name']}** - *{g['day']}* ({g['freq']})")
+            
+            # Κουμπιά έξω από expander
+            c1, c2 = st.columns(2)
+            if c1.button("🗑️ Διαγραφή", key=f"del_{g['name']}"):
+                st.session_state.my_gardens.remove(g)
+                st.rerun()
+            if c2.button("✏️ Επεξεργασία", key=f"edit_{g['name']}"):
+                st.session_state.editing = g
+                st.rerun()
 
-    # Επεξεργασία (μόνο όταν πατηθεί το κουμπί)
+    # Επεξεργασία
     if "editing" in st.session_state:
-        idx = st.session_state.editing
-        g = st.session_state.my_gardens[idx]
-        st.info(f"Επεξεργάζεσαι τον/την: {g['name']}")
+        g = st.session_state.editing
+        st.warning("Επεξεργασία κήπου:")
         new_name = st.text_input("Όνομα:", g["name"])
         new_day = st.selectbox("Ημέρα:", days, index=days.index(g["day"]))
         new_freq = st.selectbox("Συχνότητα:", ["Εβδομαδιαίος", "Εβδομάδα Α", "Εβδομάδα Β"], index=["Εβδομαδιαίος", "Εβδομάδα Α", "Εβδομάδα Β"].index(g["freq"]))
         
-        if st.button("✅ Αποθήκευση Αλλαγών"):
-            st.session_state.my_gardens[idx] = {"name": new_name, "day": new_day, "freq": new_freq}
+        if st.button("✅ Αποθήκευση"):
+            g.update({"name": new_name, "day": new_day, "freq": new_freq})
             del st.session_state.editing
             st.rerun()
-
-    # Εργαλείο αποθήκευσης
-    st.markdown("---")
-    if st.button("💾 Δημιουργία κώδικα για μόνιμη αποθήκευση"):
-        st.code(f"st.session_state.my_gardens = {st.session_state.my_gardens}")
-
-elif password != "":
-    st.error("❌ Λάθος κωδικός!")
