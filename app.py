@@ -528,7 +528,7 @@ if password == PASSWORD_SECRET:
         st.markdown("---")
 
   # -------------------------------------------------------------
-  # 2️⃣ ΚΑΡΤΕΛΑ ΠΛΗΡΩΜΩΝ ΜΗΝΑ (ΞΕΧΩΡΙΣΤΗ ΕΝΟΤΗΤΑ)
+  # 2️⃣ ΚΑΡΤΕΛΑ ΠΛΗΡΩΜΩΝ ΜΗΝΑ (ΔΙΟΡΘΩΜΕΝΗ ΣΕΙΡΑ)
   # -------------------------------------------------------------
   elif view_mode == "💰 Πληρωμές Μήνα":
     st.subheader("💰 Διαχείριση Πληρωμών Μήνα")
@@ -552,13 +552,14 @@ if password == PASSWORD_SECRET:
       if is_paid:
         paid_count += 1
 
-      c_check, c_name, c_day = st.columns([0.15, 0.55, 0.30])
+      # Εμφάνιση ονόματος πρώτα και μετά ημέρα + checkbox από κάτω
+      st.markdown(f"### 🌿 {g['name']}")
+      c_day, c_check = st.columns([0.5, 0.5])
+      c_day.caption(f"🗓️ {g['day']}")
 
       new_val = c_check.checkbox(
           "Πληρώθηκε", value=is_paid, key=f"pay_page_{pay_month}_{idx}"
       )
-      c_name.markdown(f"**{g['name']}**")
-      c_day.caption(f"🗓️ {g['day']}")
 
       if new_val != is_paid:
         if "paid_months" not in st.session_state.my_gardens[idx]:
@@ -569,7 +570,7 @@ if password == PASSWORD_SECRET:
         save_data()
         safe_rerun()
 
-    st.divider()
+      st.markdown("---")
 
     # 📊 ΣΤΑΤΙΣΤΙΚΑ ΠΛΗΡΩΜΩΝ
     if total_gardens > 0:
