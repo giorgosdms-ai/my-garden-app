@@ -1,4 +1,3 @@
-
 import calendar
 from datetime import datetime
 import json
@@ -265,11 +264,18 @@ if password == PASSWORD_SECRET:
             if g["day"] == greek_day_name and week_code in g.get("weeks", [])
         ]
 
-        matching_extras = [
-            (ex_idx, ev)
-            for ex_idx, ev in enumerate(st.session_state.extra_events)
-            if ev["date"] == date_str
-        ]
+        # 🎯 ΑΚΡΙΒΗΣ ΣΥΓΚΡΙΣΗ ΗΜΕΡΟΜΗΝΙΑΣ ΓΙΑ ΤΑ ΕΞΤΡΑΔΑΚΙΑ
+        matching_extras = []
+        for ex_idx, ev in enumerate(st.session_state.extra_events):
+          try:
+            ev_date_norm = datetime.strptime(
+                ev["date"], "%Y-%m-%d"
+            ).strftime("%Y-%m-%d")
+            if ev_date_norm == date_str:
+              matching_extras.append((ex_idx, ev))
+          except:
+            if ev["date"] == date_str:
+              matching_extras.append((ex_idx, ev))
 
         st.markdown(
             f"### 📌 {greek_day_name} {day_num:02d} {month_name}"
@@ -279,7 +285,7 @@ if password == PASSWORD_SECRET:
 
         # ⚡ ΕΜΦΑΝΙΣΗ ΕΞΤΡΑΔΑΚΙΩΝ ΜΕ ΚΟΥΜΠΙ ΔΙΑΓΡΑΦΗΣ
         if matching_extras:
-          for ex_idx, ex in matching_extras:
+          for real_ex_idx, ex in matching_extras:
             col_ex1, col_ex2 = st.columns([0.82, 0.18])
             with col_ex1:
               name_part = f"**[{ex.get('name', 'Εξτραδάκι')}]** "
@@ -294,8 +300,8 @@ if password == PASSWORD_SECRET:
                   icon="🚨",
               )
             with col_ex2:
-              if st.button("🗑️", key=f"del_ex_main_{date_str}_{ex_idx}"):
-                st.session_state.extra_events.pop(ex_idx)
+              if st.button("🗑️", key=f"del_ex_main_{date_str}_{real_ex_idx}"):
+                st.session_state.extra_events.pop(real_ex_idx)
                 save_data()
                 st.rerun()
 
