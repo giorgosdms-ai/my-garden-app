@@ -7,19 +7,34 @@ from datetime import datetime
 st.set_page_config(page_title="Διαχείριση Κήπου", layout="wide")
 
 # -------------------------------------------------------------
-# 1. Σύνδεση με Google Sheets (Authentication) - ΤΕΛΙΚΗ ΔΙΟΡΘΩΣΗ
+# 1. Σύνδεση με Google Sheets (Authentication) - ΥΠΕΡ-ΚΑΘΑΡΙΣΜΟΣ
 # -------------------------------------------------------------
 @st.cache_resource
 def get_sheet():
     creds_dict = dict(st.secrets["gcp_service_account"])
     
-    # Καθαρισμός του private key για να αποφύγουμε τα InvalidData errors
-    private_key = creds_dict["private_key"]
+    # Καθαρισμός του private key από τυχόν περιττά σύμβολα ή κενά
+    private_key = str(creds_dict["private_key"])
     private_key = private_key.replace("\\n", "\n")
-    private_key = private_key.strip('"').strip("'").strip()
     
-    if "BEGIN PRIVATE KEY" not in private_key:
-        private_key = f"-----BEGIN PRIVATE KEY-----\n{private_key}\n-----END PRIVATE KEY-----\n"
+    # Ανεξαρτήτως πώς μπήκε, το ξαναφτιάχνουμε σωστά
+    if "BEGIN PRIVATE KEY" in private_key:
+        # Απομόνωση μόνο του κλειδιού ανάμεσα στα headers
+        lines = [line.strip() for line in private_key.split("\n") if line.strip()]
+        clean_lines = []
+        capture = False
+        for line in lines:
+            if "BEGIN PRIVATE KEY" in line:
+                capture = True
+                continue
+            if "END PRIVATE KEY" in line:
+                capture = False
+                break
+            if capture:
+                clean_lines.append(line)
+        
+        key_body = "".join(clean_lines)
+        private_key = f"-----BEGIN PRIVATE KEY-----\n{key_body}\n-----END PRIVATE KEY-----\n"
         
     creds_dict["private_key"] = private_key
 
@@ -40,7 +55,8 @@ def get_sheet():
 try:
     sheet = get_sheet()
 except Exception as e:
-    st.error(f"Σφάλμα σύνδεσης με το Google Sheet: {e}")
+    st.error(f"Σφάλμα σύνδεσης: {e}")
+    st.info("💡 Αν βλέπεις ακόμα σφάλμα PEM, πήγαινε στα Settings -> Secrets στο Streamlit Cloud και βεβαιώσου ότι το private_key είναι σε μια ενιαία γραμμή με \\n.")
     st.stop()
 
 # -------------------------------------------------------------
