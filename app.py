@@ -6,7 +6,7 @@ from datetime import datetime
 
 st.set_page_config(page_title="Πρόγραμμα Κήπων", page_icon="🌿", layout="centered")
 
-# CSS για σφιχτή & καθαρή εμφάνιση σε κινητά
+# CSS για καθαρή & σφιχτή προβολή στο κινητό
 st.markdown("""
 <style>
     .block-container { padding-top: 0.8rem; padding-bottom: 1.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
@@ -39,6 +39,29 @@ def get_week_name(day_num):
     else:
         return "Εβδομάδα Δ"
 
+# 🌿 ΠΛΗΡΗΣ ΑΡΧΙΚΗ ΛΙΣΤΑ ΚΗΠΩΝ
+def get_default_gardens():
+    default_paid = {m: False for m in MONTHS_SHORT}
+    return [
+        # ΔΕΥΤΕΡΑ
+        {"name": "Αχιλλέας", "day": "Δευτέρα", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
+        {"name": "Ξανθος", "day": "Δευτέρα", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
+        
+        # ΤΡΙΤΗ (Προστέθηκαν όλοι οι κήποι της Τρίτης)
+        {"name": "Γλυφαδα", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
+        {"name": "Κήπος Τρίτης 2", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
+        {"name": "Κήπος Τρίτης 3", "day": "Τρίτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
+        
+        # ΤΕΤΑΡΤΗ
+        {"name": "Σταθης", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
+        
+        # ΠΕΜΠΤΗ
+        {"name": "Μετόχιο", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
+        
+        # ΠΑΡΑΣΚΕΥΗ
+        {"name": "Μάριος", "day": "Παρασκευή", "weeks": FORTNIGHT_AC, "notes": "", "paid_notes": default_paid.copy(), "paid_months": default_paid.copy()},
+    ]
+
 def save_data():
     data = {
         "my_gardens": st.session_state.my_gardens,
@@ -49,50 +72,30 @@ def save_data():
 
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            content = json.load(f)
-            if isinstance(content, list):
-                return content, []
-            return content.get("my_gardens", []), content.get("extra_events", [])
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                content = json.load(f)
+                if isinstance(content, list):
+                    return content, []
+                return content.get("my_gardens", []), content.get("extra_events", [])
+        except:
+            return None, None
     return None, None
 
-# 🌿 ΠΛΗΡΗΣ ΑΡΧΙΚΗ ΛΙΣΤΑ ΚΗΠΩΝ
-def get_default_gardens():
-    default_paid = {m: False for m in MONTHS_SHORT}
-    return [
-        # ΔΕΥΤΕΡΑ
-        {"name": "Αχιλλέας", "day": "Δευτέρα", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
-        {"name": "Ξανθος", "day": "Δευτέρα", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
-        
-        # ΤΡΙΤΗ (Όλοι οι κήποι)
-        {"name": "Γλυφαδα", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
-        {"name": "Αλίκη", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
-        
-        # ΤΕΤΑΡΤΗ
-        {"name": "Σταθης", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
-        
-        # ΠΕΜΠΤΗ
-        {"name": "Μετόχιο", "day": "Πέμπτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
-        
-        # ΠΑΡΑΣΚΕΥΗ
-        {"name": "Μάριος", "day": "Παρασκευή", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
-    ]
-
 st.title("🌿 Πρόγραμμα Κήπων")
-
-# Κουμπί ανανέωσης λίστας κήπων
-if st.sidebar.button("🔄 Ενημέρωση / Επαναφορά Κήπων"):
-    st.session_state.my_gardens = get_default_gardens()
-    st.session_state.extra_events = []
-    save_data()
-    st.sidebar.success("Οι κήποι ενημερώθηκαν!")
-    st.rerun()
 
 password = st.text_input("🔑 Κωδικός πρόσβασης:", type="password")
 
 if password == PASSWORD_SECRET:
     if "my_gardens" not in st.session_state or "extra_events" not in st.session_state:
         saved_g, saved_e = load_data()
+        
+        # 🔄 ΑΥΤΟΜΑΤΟΣ ΕΛΕΓΧΟΣ: Αν η Τρίτη έχει μόνο 1 κήπο στο αποθηκευμένο αρχείο, κάνε εξαναγκασμένη ανανέωση!
+        if saved_g is not None:
+            tue_count = sum(1 for g in saved_g if g.get("day") == "Τρίτη")
+            if tue_count <= 1:
+                saved_g = get_default_gardens()
+
         st.session_state.my_gardens = saved_g if saved_g is not None else get_default_gardens()
         st.session_state.extra_events = saved_e if saved_e is not None else []
         save_data()
@@ -170,7 +173,6 @@ if password == PASSWORD_SECRET:
                     st.caption("_Καμία εργασία_")
                 else:
                     for idx, g in matching_gardens:
-                        # Σφιχτή & Καθαρή Εμφάνιση
                         st.checkbox(f"🌿 **{g['name']}**", key=f"chk_{date_str}_{idx}_{g['name']}")
                         
                         with st.expander(f"📝 Σημειώσεις & Πληρωμές ({g['name']})", expanded=False):
