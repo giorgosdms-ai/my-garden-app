@@ -27,6 +27,10 @@ DATA_FILE = "gardens_data.json"
 PASSWORD_SECRET = "1619"
 
 ALL_WEEKS = ["Εβδομάδα Α", "Εβδομάδα Β", "Εβδομάδα Γ", "Εβδομάδα Δ"]
+WEEKS_AC = ["Εβδομάδα Α", "Εβδομάδα Γ"]
+WEEKS_BD = ["Εβδομάδα Β", "Εβδομάδα Δ"]
+WEEKS_A_ONLY = ["Εβδομάδα Α"]
+
 DAYS_GREEK = [
     "Δευτέρα",
     "Τρίτη",
@@ -77,54 +81,54 @@ def get_week_name(day_num):
     return "Εβδομάδα Δ"
 
 
-# 🌿 ΟΛΟΚΛΗΡΩΜΕΝΗ ΛΙΣΤΑ ΚΗΠΩΝ ΑΠΟ ΤΙΣ ΦΩΤΟΓΡΑΦΙΕΣ ΣΟΥ
+# 🌿 ΑΡΧΙΚΗ ΛΙΣΤΑ ΚΗΠΩΝ ΜΕ ΑΚΡΙΒΗ ΔΙΑΧΩΡΙΣΜΟ
 def get_default_gardens():
   default_paid = {m: False for m in MONTHS_SHORT}
 
   gardens_raw = [
       # --- ΔΕΥΤΕΡΑ ---
-      ("Αχιλλέας", "Δευτέρα"),
-      ("Ξάνθος", "Δευτέρα"),
-      ("Αιγίνης", "Δευτέρα"),
-      ("Τεγέας", "Δευτέρα"),
-      ("Ιωαννίδης", "Δευτέρα"),
-      ("Πετραν", "Δευτέρα"),
-      ("Αγίας Λαύρας", "Δευτέρα"),
-      ("28ης", "Δευτέρα"),
+      ("Αχιλλέας", "Δευτέρα", ALL_WEEKS),  # Κάθε εβδομάδα
+      ("28ης", "Δευτέρα", WEEKS_A_ONLY),  # 1 φορά/μήνα
+      ("Αγίας Λαύρας", "Δευτέρα", WEEKS_A_ONLY),  # 1 φορά/μήνα
+      ("Ξάνθος", "Δευτέρα", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Αιγίνης", "Δευτέρα", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Τεγέας", "Δευτέρα", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
+      ("Ιωαννίδης", "Δευτέρα", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
+      ("Πετραν", "Δευτέρα", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
       # --- ΤΡΙΤΗ ---
-      ("Γλυφάδα", "Τρίτη"),
-      ("Άγιος Δημήτριος 1", "Τρίτη"),
-      ("Άγιος Δημήτριος 2", "Τρίτη"),
-      ("Βούλα", "Τρίτη"),
-      ("Βέρα λω Φάληρο", "Τρίτη"),
-      ("Πετρούλα", "Τρίτη"),
+      ("Άγιος Δημήτριος 1", "Τρίτη", ALL_WEEKS),  # Κάθε εβδομάδα
+      ("Άγιος Δημήτριος 2", "Τρίτη", ALL_WEEKS),  # Κάθε εβδομάδα
+      ("Γλυφάδα", "Τρίτη", ALL_WEEKS),  # Κάθε εβδομάδα
+      ("Πετρούλα", "Τρίτη", WEEKS_A_ONLY),  # 1 φορά/μήνα
+      ("Βούλα", "Τρίτη", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Βέρα λω Φάληρο", "Τρίτη", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
       # --- ΤΕΤΑΡΤΗ ---
-      ("Στάθης", "Τετάρτη"),
-      ("Μενίδι", "Τετάρτη"),
-      ("Ανθουσών", "Τετάρτη"),
-      ("Μάκης", "Τετάρτη"),
-      ("Αλέξανδρος", "Τετάρτη"),
-      ("Άνω Λιόσια", "Τετάρτη"),
-      ("Δίπλα από Στάθη", "Τετάρτη"),
-      ("Μεταμόρφωση", "Τετάρτη"),
+      ("Στάθης", "Τετάρτη", ALL_WEEKS),  # Κάθε εβδομάδα
+      ("Μενίδι", "Τετάρτη", ALL_WEEKS),  # Κάθε εβδομάδα
+      ("Μεταμόρφωση", "Τετάρτη", WEEKS_A_ONLY),  # 1 φορά/μήνα
+      ("Δίπλα από Στάθη", "Τετάρτη", WEEKS_A_ONLY),  # 1 φορά/μήνα
+      ("Ανθουσών", "Τετάρτη", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Μάκης", "Τετάρτη", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Αλέξανδρος", "Τετάρτη", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
+      ("Άνω Λιόσια", "Τετάρτη", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
       # --- ΠΕΜΠΤΗ ---
-      ("Μετόχιο", "Πέμπτη"),
-      ("Μαρούσι", "Πέμπτη"),
-      ("Μικράς Ασίας Αλέξανδρος", "Πέμπτη"),
-      ("Μικράς Ασίας 2", "Πέμπτη"),
-      ("Καβάλας", "Πέμπτη"),
-      ("Ροζέλα", "Πέμπτη"),
-      ("Βέρα λω Ψυχικό", "Πέμπτη"),
-      ("Αλίκη", "Πέμπτη"),
+      ("Μετόχιο", "Πέμπτη", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Μαρούσι", "Πέμπτη", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Μικράς Ασίας Αλέξανδρος", "Πέμπτη", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Μικράς Ασίας 2", "Πέμπτη", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
+      ("Καβάλας", "Πέμπτη", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
+      ("Ροζέλα", "Πέμπτη", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
+      ("Βέρα λω Ψυχικό", "Πέμπτη", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
+      ("Αλίκη", "Πέμπτη", WEEKS_BD),  # 2 φορές/μήνα (Β & Δ)
       # --- ΠΑΡΑΣΚΕΥΗ ---
-      ("Μάριος", "Παρασκευή"),
+      ("Μάριος", "Παρασκευή", WEEKS_AC),  # 2 φορές/μήνα (Α & Γ)
   ]
 
   return [
       {
           "name": g[0],
           "day": g[1],
-          "weeks": ALL_WEEKS.copy(),
+          "weeks": g[2].copy(),
           "notes": "",
           "paid_months": default_paid.copy(),
       }
@@ -156,12 +160,12 @@ def load_data():
 
 st.title("🌿 Πρόγραμμα Κήπων")
 
-# Κουμπί Επαναφοράς στη Sidebar
+# Κουμπί Επαναφοράς στη Sidebar (Για να φορτώνει τη νέα μοιρασμένη λίστα)
 if st.sidebar.button("🔄 Επαναφορά Αρχικών Κήπων"):
   st.session_state.my_gardens = get_default_gardens()
   st.session_state.extra_events = []
   save_data()
-  st.sidebar.success("Όλοι οι κήποι επαναφέρθηκαν!")
+  st.sidebar.success("Όλοι οι κήποι επαναφέρθηκαν & μοιράστηκαν!")
   st.rerun()
 
 password = st.text_input("🔑 Δώσε τον κωδικό πρόσβασης:", type="password")
@@ -173,15 +177,7 @@ if password == PASSWORD_SECRET:
   ):
     saved_g, saved_e = load_data()
 
-    # Αυτόματος συγχρονισμός: αν λείπει κάποιος από τους νέους κήπους, φόρτωσε τη νέα πλήρη λίστα
-    if saved_g is not None:
-      existing_names = [g.get("name") for g in saved_g]
-      if (
-          "Αιγίνης" not in existing_names
-          or "Βέρα λω Ψυχικό" not in existing_names
-      ):
-        saved_g = get_default_gardens()
-
+    # Αυτόματη ενημέρωση αν η παλιά λίστα δεν είχε το σωστό διαχωρισμό
     st.session_state.my_gardens = (
         saved_g if saved_g is not None else get_default_gardens()
     )
@@ -189,11 +185,18 @@ if password == PASSWORD_SECRET:
     save_data()
 
   view_mode = st.radio(
-      "📌 **Επιλόγη Προβολής:**",
-      ["📅 Πλήρες Μηνιαίο Πρόγραμμα", "➕ Προσθήκη / Εξτραδάκια / Διαχείριση"],
+      "📌 **Επιλογή Προβολής:**",
+      [
+          "📅 Πλήρες Μηνιαίο Πρόγραμμα",
+          "🔄 Συχνότητα Εβδομάδων (Α,Β,Γ,Δ)",
+          "➕ Προσθήκη / Εξτραδάκια / Διαγραφή",
+      ],
       horizontal=True,
   )
 
+  # -------------------------------------------------------------
+  # 1️⃣ ΠΡΟΒΟΛΗ ΜΗΝΙΑΙΟΥ ΠΡΟΓΡΑΜΜΑΤΟΣ
+  # -------------------------------------------------------------
   if view_mode == "📅 Πλήρες Μηνιαίο Πρόγραμμα":
 
     col_m, col_y = st.columns(2)
@@ -240,13 +243,19 @@ if password == PASSWORD_SECRET:
       st.subheader(f"🔎 Αποτελέσματα για: '{search_query}'")
       for idx, g in enumerate(st.session_state.my_gardens):
         if search_query.lower() in g["name"].lower():
-          st.write(f"📌 **{g['name']}** | {g['day']}")
+          weeks_str = (
+              ", ".join([w.replace("Εβδομάδα ", "") for w in g.get("weeks", [])])
+              if g.get("weeks")
+              else "Καμία"
+          )
+          st.write(
+              f"📌 **{g['name']}** | {g['day']} | **Εβδομάδες:** {weeks_str}"
+          )
           render_month_picker(idx, "search")
           st.divider()
     else:
       num_days = calendar.monthrange(selected_year, selected_month_num)[1]
 
-      # 📆 ΠΡΟΒΟΛΗ ΚΑΘΕ ΗΜΕΡΑΣ ΤΟΥ ΜΗΝΑ ΞΕΧΩΡΙΣΤΑ (π.χ. 3 Αυγούστου Δευτέρα)
       for day_num in range(1, num_days + 1):
         day_dt = datetime(selected_year, selected_month_num, day_num)
         date_str = day_dt.strftime("%Y-%m-%d")
@@ -258,28 +267,26 @@ if password == PASSWORD_SECRET:
         week_code = get_week_name(day_num)
         month_name = MONTHS_FULL[selected_month_num - 1]
 
-        # Φιλτράρισμα τακτικών κήπων της ημέρας
+        # Φιλτράρισμα βάσει εβδομάδας
         matching_gardens = [
             (idx, g)
             for idx, g in enumerate(st.session_state.my_gardens)
             if g["day"] == greek_day_name and week_code in g.get("weeks", [])
         ]
 
-        # Φιλτράρισμα για έκτακτα / εξτραδάκια της ημέρας
         matching_extras = [
             ev
             for ev in st.session_state.extra_events
             if ev["date"] == date_str
         ]
 
-        # Τίτλος Ημέρας (π.χ. 📌 Δευτέρα 03 Αυγούστου 2026)
         st.markdown(
-            f"### 📌 {greek_day_name} {day_num:02d} {month_name} {selected_year}"
-            f" <small style='color:gray;'>({week_code})</small>",
+            f"### 📌 {greek_day_name} {day_num:02d} {month_name}"
+            f" <small style='color:#555;'>({week_code})</small>",
             unsafe_allow_html=True,
         )
 
-        # ⚡ ΕΜΦΑΝΙΣΗ ΕΞΤΡΑΔΑΚΙΩΝ
+        # Εξτραδάκια
         if matching_extras:
           for ex in matching_extras:
             st.warning(
@@ -288,7 +295,7 @@ if password == PASSWORD_SECRET:
                 icon="🚨",
             )
 
-        # 🌿 ΕΜΦΑΝΙΣΗ ΤΑΚΤΙΚΩΝ ΚΗΠΩΝ
+        # Τακτικοί κήποι
         if not matching_gardens and not matching_extras:
           st.caption("_Καμία προγραμματισμένη εργασία_")
         else:
@@ -313,8 +320,45 @@ if password == PASSWORD_SECRET:
 
         st.markdown("---")
 
+  # -------------------------------------------------------------
+  # 2️⃣ ΚΑΡΤΕΛΑ ΡΥΘΜΙΣΗΣ ΕΒΔΟΜΑΔΩΝ (Α, Β, Γ, Δ)
+  # -------------------------------------------------------------
+  elif view_mode == "🔄 Συχνότητα Εβδομάδων (Α,Β,Γ,Δ)":
+    st.subheader("⚙️ Ρύθμιση Εβδομάδων ανά Κήπο")
+
+    for day in DAYS_GREEK[:6]:
+      day_gardens = [
+          (idx, g)
+          for idx, g in enumerate(st.session_state.my_gardens)
+          if g["day"] == day
+      ]
+      if day_gardens:
+        st.markdown(f"### 🗓️ {day}")
+        for idx, g in day_gardens:
+          st.write(f"🌿 **{g['name']}**")
+          cols = st.columns(4)
+          current_weeks = g.get("weeks", [])
+          new_weeks = []
+
+          for w_idx, w_code in enumerate(ALL_WEEKS):
+            is_selected = w_code in current_weeks
+            label = w_code.replace("Εβδομάδα ", "Εβδ. ")
+            if cols[w_idx].checkbox(
+                label, value=is_selected, key=f"week_set_{idx}_{w_code}"
+            ):
+              new_weeks.append(w_code)
+
+          if set(new_weeks) != set(current_weeks):
+            st.session_state.my_gardens[idx]["weeks"] = new_weeks
+            save_data()
+            st.rerun()
+
+        st.divider()
+
+  # -------------------------------------------------------------
+  # 3️⃣ ΠΡΟΣΘΗΚΗ / ΕΞΤΡΑΔΑΚΙΑ / ΔΙΑΓΡΑΦΗ
+  # -------------------------------------------------------------
   else:
-    # --- ΠΡΟΣΘΗΚΗ / ΕΞΤΡΑΔΑΚΙΑ / ΔΙΑΧΕΙΡΙΣΗ ---
     tab1, tab2, tab3 = st.tabs([
         "⚡ Προσθήκη Έκτακτου (Εξτραδάκι)",
         "➕ Προσθήκη Νέου Κήπου",
