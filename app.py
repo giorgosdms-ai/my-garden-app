@@ -132,20 +132,12 @@ def get_default_gardens():
   default_paid = {m: False for m in MONTHS_SHORT}
   gardens_raw = [
       ("Αχιλλέας", "Δευτέρα", ALL_WEEKS),
-      ("28ης", "Δευτέρα", WEEKS_A_ONLY),
-      ("Αγίας Λαύρας", "Δευτέρα", WEEKS_A_ONLY),
+      ("28ης", "Δευτέρα", WEEKS_A_ONLY),  # 1 φορά τον μήνα (Εβδομάδα Α)
+      ("Αγίας Λαύρας", "Δευτέρα", WEEKS_A_ONLY),  # 1 φορά τον μήνα (Εβδομάδα Α)
       ("Ξάνθος", "Δευτέρα", WEEKS_AC),
       ("Αιγίνης", "Δευτέρα", WEEKS_AC),
-      (
-          "Αιακού",
-          "Δευτέρα",
-          WEEKS_D_ONLY,
-      ),  # 1 φορά τον μήνα στην τελευταία εβδομάδα (Δ)
-      (
-          "Ελευθερία",
-          "Δευτέρα",
-          WEEKS_D_ONLY,
-      ),  # 1 φορά τον μήνα στην τελευταία εβδομάδα (Δ)
+      ("Αιακού", "Δευτέρα", WEEKS_D_ONLY),  # 1 φορά τον μήνα (Εβδομάδα Δ)
+      ("Ελευθερία", "Δευτέρα", WEEKS_D_ONLY),  # 1 φορά τον μήνα (Εβδομάδα Δ)
       ("Τεγέας", "Δευτέρα", WEEKS_BD),
       ("Ιωαννίδης", "Δευτέρα", WEEKS_BD),
       ("Πετραν", "Δευτέρα", WEEKS_BD),
@@ -403,7 +395,6 @@ if password == PASSWORD_SECRET:
 
         is_official_holiday = date_str in holidays_dict
 
-        # 📌 ΤΙΤΛΟΣ ΗΜΕΡΑΣ + ΚΟΥΜΠΙ «➕ ΕΞΤΡΑΔΑΚΙ»
         col_head1, col_head2 = st.columns([0.70, 0.30])
         with col_head1:
           st.markdown(
@@ -419,11 +410,9 @@ if password == PASSWORD_SECRET:
               st.session_state.active_add_date = date_str
             safe_rerun()
 
-        # 🏛️ ΕΜΦΑΝΙΣΗ ΕΠΙΣΗΜΗΣ ΑΡΓΙΑΣ
         if is_official_holiday:
           st.error(f"🔴 **ΕΠΙΣΗΜΗ ΑΡΓΙΑ:** {holidays_dict[date_str]}")
 
-        # 🏖️ ΕΜΦΑΝΙΣΗ ΑΔΕΙΩΝ & ΡΕΠΟ
         for l in matching_leaves:
           if l["type"] == "Ρεπό":
             st.error(
@@ -436,7 +425,6 @@ if password == PASSWORD_SECRET:
                 + (f" - _Σημείωση: {l['notes']}_" if l["notes"] else "")
             )
 
-        # ⚡ ΦΟΡΜΑ ΠΡΟΣΘΗΚΗΣ ΕΞΤΡΑΔΑΚΙΟΥ
         if st.session_state.active_add_date == date_str:
           st.info(
               f"⚡ **Προσθήκη Εξτραδακίου για {greek_day_name}"
@@ -487,7 +475,6 @@ if password == PASSWORD_SECRET:
             st.session_state.active_add_date = None
             safe_rerun()
 
-        # 🚨 ΕΜΦΑΝΙΣΗ ΕΞΤΡΑΔΑΚΙΩΝ
         if matching_extras:
           for real_ex_idx, ex in matching_extras:
             col_ex1, col_ex2 = st.columns([0.84, 0.16])
@@ -509,7 +496,6 @@ if password == PASSWORD_SECRET:
                 save_data()
                 safe_rerun()
 
-        # 🌿 ΕΜΦΑΝΙΣΗ ΤΑΚΤΙΚΩΝ ΚΗΠΩΝ
         if (
             not matching_gardens
             and not matching_extras
@@ -524,7 +510,6 @@ if password == PASSWORD_SECRET:
                 f"🌿 **{g['name']}**", key=f"chk_{date_str}_{idx}_{g['name']}"
             )
 
-            # 📝 ΜΟΝΟ ΣΗΜΕΙΩΣΗ (ΧΩΡΙΣ ΠΛΗΡΩΜΕΣ ΕΔΩ)
             with st.expander(f"📝 Σημείωση ({g['name']})", expanded=False):
               user_note = st.text_area(
                   "Σημείωση Κήπου:",
