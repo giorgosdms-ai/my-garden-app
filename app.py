@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime
+from datetime import date, datetime, timedelta
 import json
 import os
 import streamlit as st
@@ -77,6 +77,49 @@ MONTHS_FULL = [
 ]
 
 
+# Υπολογισμός Ορθόδοξου Πάσχα (Meeus/Jones/Butcher algorithm)
+def get_orthodox_easter(year):
+  a = year % 19
+  b = year % 4
+  c = year % 7
+  d = (19 * a + 15) % 30
+  e = (2 * b + 4 * c + 6 * d + 6) % 7
+  f = d + e
+  if f <= 9:
+    day = 22 + f
+    month = 3
+  else:
+    day = f - 9
+    month = 4
+  # Διόρθωση Ιουλιανού -> Γρηγοριανού ημερολογίου (+13 μέρες)
+  easter_julian = date(year, month, day)
+  return easter_julian + timedelta(days=13)
+
+
+# Επιστρέφει λεξικό με όλες τις αργίες του έτους
+def get_greek_holidays(year):
+  easter = get_orthodox_easter(year)
+
+  holidays = {
+      f"{year}-01-01": "Πρωτοχρονιά",
+      f"{year}-01-06": "Θεοφάνεια",
+      f"{year}-03-25": "25η Μαρτίου",
+      f"{year}-05-01": "Πρωτομαγιά",
+      f"{year}-08-15": "Δεκαπενταύγουστος",
+      f"{year}-10-28": "28η Οκτωβρίου",
+      f"{year}-12-25": "Χριστούγεννα",
+      f"{year}-12-26": "Σύναξη Θεοτόκου",
+      # Κινητές
+      (easter - timedelta(days=48)).strftime("%Y-%m-%d"): "Καθαρά Δευτέρα",
+      (easter - timedelta(days=2)).strftime("%Y-%m-%d"): "Μεγάλη Παρασκευή",
+      (easter - timedelta(days=1)).strftime("%Y-%m-%d"): "Μεγάλο Σάββατο",
+      easter.strftime("%Y-%m-%d"): "Πάσχα",
+      (easter + timedelta(days=1)).strftime("%Y-%m-%d"): "Δευτέρα του Πάσχα",
+      (easter + timedelta(days=50)).strftime("%Y-%m-%d"): "Αγίου Πνεύματος",
+  }
+  return holidays
+
+
 def get_week_name(day_num):
   if day_num <= 7:
     return "Εβδομάδα Α"
@@ -139,6 +182,7 @@ def save_data():
   data = {
       "my_gardens": st.session_state.my_gardens,
       "extra_events": st.session_state.extra_events,
+      "leaves": st.session_state.leaves,
   }
   with open(DATA_FILE, "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False, indent=4)
@@ -150,11 +194,15 @@ def load_data():
       with open(DATA_FILE, "r", encoding="utf-8") as f:
         content = json.load(f)
         if isinstance(content, list):
-          return content, []
-        return content.get("my_gardens", []), content.get("extra_events", [])
+          return content, [], []
+        return (
+            content.get("my_gardens", []),
+            content.get("extra_events", []),
+            content.get("leaves", []),
+        )
     except:
-      return None, None
-  return None, None
+      return None, None, None
+  return None, None, None
 
 
 st.title("🌿 Πρόγραμμα Κήπων")
@@ -162,6 +210,7 @@ st.title("🌿 Πρόγραμμα Κήπων")
 if st.sidebar.button("🔄 Επαναφορά Αρχικών Κήπων"):
   st.session_state.my_gardens = get_default_gardens()
   st.session_state.extra_events = []
+  st.session_state.leaves = []
   save_data()
   st.sidebar.success("Όλοι οι κήποι επαναφέρθηκαν!")
   safe_rerun()
@@ -172,12 +221,14 @@ if password == PASSWORD_SECRET:
   if (
       "my_gardens" not in st.session_state
       or "extra_events" not in st.session_state
+      or "leaves" not in st.session_state
   ):
-    saved_g, saved_e = load_data()
+    saved_g, saved_e, saved_l = load_data()
     st.session_state.my_gardens = (
         saved_g if saved_g is not None else get_default_gardens()
     )
     st.session_state.extra_events = saved_e if saved_e is not None else []
+    st.session_state.leaves = saved_l if saved_l is not None else []
     save_data()
 
   if "active_add_date" not in st.session_state:
@@ -208,6 +259,89 @@ if password == PASSWORD_SECRET:
     selected_year = col_y.number_input(
         "Έτος:", value=datetime.now().year, step=1
     )
+
+    holidays_dict = get_greek_holidays(selected_year)
+
+    # 🏖️ ΔΙΑΧΕΙΡΙΣΗ ΑΔΕΙΩΝ & ΡΕΠΟ
+    with st.expander("🏖️ **Διαχείριση Αδειών & Ρεπό**", expanded=False):
+      tab_add_l, tab_list_l = st.tabs(
+          ["➕ Προσθήκη Άδειας/Ρεπό", "📋 Ενεργές Άδειες"]
+      )
+
+      with tab_add_l:
+        leave_type = st.radio(
+            "Τύπος:",
+            ["👤 Άδεια Προσωπικού", "🔴 Ρεπό / Αργία"],
+            horizontal=True,
+        )
+
+        person_name = ""
+        if leave_type == "👤 Άδεια Προσωπικού":
+          person_name = st.text_input(
+              "Όνομα (π.χ. Γιάννης):", key="leave_person_input"
+          )
+
+        col_d1, col_d2 = st.columns(2)
+        start_d = col_d1.date_input(
+            "Από ημερομηνία:", date.today(), key="leave_start"
+        )
+        end_d = col_d2.date_input(
+            "Έως ημερομηνία:", date.today(), key="leave_end"
+        )
+
+        leave_note = st.text_input("Σημείωση (προαιρετικά):", key="leave_note")
+
+        if st.button("✅ Αποθήκευση Άδειας / Ρεπό"):
+          if leave_type == "👤 Άδεια Προσωπικού" and not person_name.strip():
+            st.warning("Συμπλήρωσε το όνομα του ατόμου!")
+          elif start_d > end_d:
+            st.error(
+                "Η ημερομηνία 'Από' δεν μπορεί να είναι μετά την ημερομηνία"
+                " 'Έως'!"
+            )
+          else:
+            new_leave = {
+                "type": (
+                    "Άδεια" if leave_type == "👤 Άδεια Προσωπικού" else "Ρεπό"
+                ),
+                "person": (
+                    person_name.strip()
+                    if leave_type == "👤 Άδεια Προσωπικού"
+                    else "Όλοι"
+                ),
+                "start_date": start_d.strftime("%Y-%m-%d"),
+                "end_date": end_d.strftime("%Y-%m-%d"),
+                "notes": leave_note.strip(),
+            }
+            st.session_state.leaves.append(new_leave)
+            save_data()
+            st.success("Καταχωρήθηκε επιτυχώς!")
+            safe_rerun()
+
+      with tab_list_l:
+        if not st.session_state.leaves:
+          st.caption("Δεν υπάρχουν καταχωρημένες άδειες ή ρεπό.")
+        else:
+          for idx, l in enumerate(st.session_state.leaves):
+            c1, c2 = st.columns([0.82, 0.18])
+            range_str = (
+                f"{l['start_date']} έως {l['end_date']}"
+                if l["start_date"] != l["end_date"]
+                else l["start_date"]
+            )
+            title_str = (
+                f"🏖️ **{l['person']}** ({l['type']})"
+                if l["type"] == "Άδεια"
+                else "🔴 **ΡΕΠΟ**"
+            )
+            c1.write(
+                f"{title_str} | 📅 {range_str}"
+                + (f" _({l['notes']})_" if l["notes"] else "")
+            )
+            if c2.button("🗑️", key=f"del_leave_{idx}"):
+              st.session_state.leaves.pop(idx)
+              save_data()
+              safe_rerun()
 
     search_query = st.text_input(
         "🔍 Αναζήτηση Κήπου:", placeholder="Γράψε όνομα..."
@@ -278,6 +412,14 @@ if password == PASSWORD_SECRET:
             if ev.get("date") == date_str
         ]
 
+        matching_leaves = [
+            l
+            for l in st.session_state.leaves
+            if l["start_date"] <= date_str <= l["end_date"]
+        ]
+
+        is_official_holiday = date_str in holidays_dict
+
         # 📌 ΤΙΤΛΟΣ ΗΜΕΡΑΣ + ΚΟΥΜΠΙ «➕ ΕΞΤΡΑΔΑΚΙ»
         col_head1, col_head2 = st.columns([0.70, 0.30])
         with col_head1:
@@ -294,7 +436,24 @@ if password == PASSWORD_SECRET:
               st.session_state.active_add_date = date_str
             safe_rerun()
 
-        # ⚡ ΦΟΡΜΑ ΠΡΟΣΘΗΚΗΣ ΕΞΤΡΑΔΑΚΙΟΥ (ΑΝΟΙΓΕΙ ΣΤΗ ΣΥΓΚΕΚΡΙΜΕΝΗ ΜΕΡΑ)
+        # 🏛️ ΕΜΦΑΝΙΣΗ ΕΠΙΣΗΜΗΣ ΑΡΓΙΑΣ
+        if is_official_holiday:
+          st.error(f"🔴 **ΕΠΙΣΗΜΗ ΑΡΓΙΑ:** {holidays_dict[date_str]}")
+
+        # 🏖️ ΕΜΦΑΝΙΣΗ ΑΔΕΙΩΝ & ΡΕΠΟ
+        for l in matching_leaves:
+          if l["type"] == "Ρεπό":
+            st.error(
+                f"🔴 **ΡΕΠΟ / ΑΡΓΙΑ**"
+                + (f" - _Σημείωση: {l['notes']}_" if l["notes"] else "")
+            )
+          else:
+            st.info(
+                f"🏖️ **Άδεια:** {l['person']}"
+                + (f" - _Σημείωση: {l['notes']}_" if l["notes"] else "")
+            )
+
+        # ⚡ ΦΟΡΜΑ ΠΡΟΣΘΗΚΗΣ ΕΞΤΡΑΔΑΚΙΟΥ
         if st.session_state.active_add_date == date_str:
           st.info(
               f"⚡ **Προσθήκη Εξτραδακίου για {greek_day_name}"
@@ -345,7 +504,7 @@ if password == PASSWORD_SECRET:
             st.session_state.active_add_date = None
             safe_rerun()
 
-        # 🚨 ΕΜΦΑΝΙΣΗ ΕΞΤΡΑΔΑΚΙΩΝ (ΜΕ ΩΡΑ, ΟΝΟΜΑ & ΚΟΥΜΠΙ ΔΙΑΓΡΑΦΗΣ)
+        # 🚨 ΕΜΦΑΝΙΣΗ ΕΞΤΡΑΔΑΚΙΩΝ
         if matching_extras:
           for real_ex_idx, ex in matching_extras:
             col_ex1, col_ex2 = st.columns([0.84, 0.16])
@@ -371,6 +530,8 @@ if password == PASSWORD_SECRET:
         if (
             not matching_gardens
             and not matching_extras
+            and not matching_leaves
+            and not is_official_holiday
             and st.session_state.active_add_date != date_str
         ):
           st.caption("_Καμία προγραμματισμένη εργασία_")
