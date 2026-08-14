@@ -193,12 +193,25 @@ def load_data():
       with open(DATA_FILE, "r", encoding="utf-8") as f:
         content = json.load(f)
         if isinstance(content, list):
-          return content, [], []
-        return (
-            content.get("my_gardens", []),
-            content.get("extra_events", []),
-            content.get("leaves", []),
-        )
+          gardens = content
+          extras, leaves = [], []
+        else:
+          gardens = content.get("my_gardens", [])
+          extras = content.get("extra_events", [])
+          leaves = content.get("leaves", [])
+
+        # Αυτόματη ενημέρωση συγκεκριμένων κήπων αν υπάρχουν ήδη αποθηκευμένοι
+        default_map = {
+            "28ης": WEEKS_A_ONLY,
+            "Αγίας Λαύρας": WEEKS_A_ONLY,
+            "Αιακού": WEEKS_D_ONLY,
+            "Ελευθερία": WEEKS_D_ONLY,
+        }
+        for g in gardens:
+          if g["name"] in default_map:
+            g["weeks"] = default_map[g["name"]]
+
+        return gardens, extras, leaves
     except:
       return None, None, None
   return None, None, None
