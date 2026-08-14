@@ -7,16 +7,18 @@ from datetime import datetime
 st.set_page_config(page_title="Διαχείριση Κήπου", layout="wide")
 
 # -------------------------------------------------------------
-# 1. Σύνδεση με Google Sheets (Authentication)
+# 1. Σύνδεση με Google Sheets (Authentication) - ΤΕΛΙΚΗ ΔΙΟΡΘΩΣΗ
 # -------------------------------------------------------------
 @st.cache_resource
 def get_sheet():
     creds_dict = dict(st.secrets["gcp_service_account"])
     
+    # Καθαρισμός του private key για να αποφύγουμε τα InvalidData errors
     private_key = creds_dict["private_key"]
-    private_key = private_key.replace("\\n", "\n").strip()
+    private_key = private_key.replace("\\n", "\n")
+    private_key = private_key.strip('"').strip("'").strip()
     
-    if not private_key.startswith("-----BEGIN PRIVATE KEY-----"):
+    if "BEGIN PRIVATE KEY" not in private_key:
         private_key = f"-----BEGIN PRIVATE KEY-----\n{private_key}\n-----END PRIVATE KEY-----\n"
         
     creds_dict["private_key"] = private_key
@@ -42,7 +44,7 @@ except Exception as e:
     st.stop()
 
 # -------------------------------------------------------------
-# 2. Διαχείριση Δεδομένων (Load / Save)
+# 2. Διαχείριση Δεδομένων
 # -------------------------------------------------------------
 def load_data():
     try:
@@ -51,7 +53,6 @@ def load_data():
             return pd.DataFrame(columns=["Ημερομηνία", "Εργασία", "Ποσό", "Εβδομάδα", "Κατάσταση"])
         return pd.DataFrame(data)
     except Exception as e:
-        st.warning(f"Δεν βρέθηκαν δεδομένα ή υπήρξε σφάλμα ανάγνωσης: {e}")
         return pd.DataFrame(columns=["Ημερομηνία", "Εργασία", "Ποσό", "Εβδομάδα", "Κατάσταση"])
 
 def save_data(df):
@@ -62,20 +63,16 @@ def save_data(df):
         st.error(f"Σφάλμα αποθήκευσης: {e}")
 
 # -------------------------------------------------------------
-# 3. Διεπαφή Χρήστη (UI) - Καρτέλες
+# 3. Διεπαφή Χρήστη
 # -------------------------------------------------------------
 st.title("🌱 Διαχείριση Κήπου & Εργασιών")
-
 tab_prog, tab_pay, tab_weeks, tab_add = st.tabs(["📅 Πρόγραμμα", "💰 Πληρωμές", "📆 Εβδομάδες", "➕ Προσθήκη"])
 
 df = load_data()
 
 with tab_prog:
     st.header("Πρόγραμμα Εργασιών")
-    if df.empty:
-        st.info("Δεν υπάρχουν καταχωρημένες εργασίες ακόμη.")
-    else:
-        st.dataframe(df, use_container_width=True)
+    st.dataframe(df, use_container_width=True)
         
 with tab_pay:
     st.header("Διαχείριση Πληρωμών")
@@ -83,18 +80,13 @@ with tab_pay:
         total = df["Ποσό"].apply(pd.to_numeric, errors='coerce').sum()
         st.metric(label="Συνολικό Ποσό", value=f"{total} €")
         st.dataframe(df, use_container_width=True)
-    else:
-        st.info("Δεν υπάρχουν δεδομένα πληρωμών.")
 
 with tab_weeks:
     st.header("Εβδομαδιαία Προβολή")
     if not df.empty and "Εβδομάδα" in df.columns:
         weeks = df["Εβδομάδα"].unique()
         selected_week = st.selectbox("Επιλέξτε Εβδομάδα", weeks)
-        filtered_df = df[df["Εβδομάδα"] == selected_week]
-        st.dataframe(filtered_df, use_container_width=True)
-    else:
-        st.info("Δεν βρέθηκαν δεδομένα εβδομάδων.")
+        st.dataframe(df[df["Εβδομάδα"] == selected_week], use_container_width=True)
 
 with tab_add:
     st.header("Προσθήκη Νέας Εγγραφής")
@@ -102,19 +94,11 @@ with tab_add:
         date_val = st.date_input("Ημερομηνία", datetime.today())
         task_val = st.text_input("Εργασία")
         amount_val = st.number_input("Ποσό (€)", min_value=0.0, step=10.0)
-        week_val = st.text_input("Εβδομάδα (π.χ. Εβδομάδα 1)")
+        week_val = st.text_input("Εβδομάδα")
         status_val = st.selectbox("Κατάσταση", ["Εκκρεμεί", "Ολοκληρώθηκε"])
         
-        submitted = st.form_submit_button("Αποθήκευση")
-        if submitted:
-            new_row = pd.DataFrame([{
-                "Ημερομηνία": str(date_val),
-                "Εργασία": task_val,
-                "Ποσό": amount_val,
-                "Εβδομάδα": week_val,
-                "Κατάσταση": status_val
-            }])
-            updated_df = pd.concat([df, new_row], ignore_index=True)
-            save_data(updated_df)
-            st.success("Η εγγραφή αποθηκεύτηκε με επιτυχία!")
+        if st.form_submit_button("Αποθήκευση"):
+            new_row = pd.DataFrame([{"Ημερομηνία": str(date_val), "Εργασία": task_val, "Ποσό": amount_val, "Εβδομάδα": week_val, "Κατάσταση": status_val}])
+            save_data(pd.concat([df, new_row], ignore_index=True))
+            st.success("Αποθηκεύτηκε!")
             st.rerun()
