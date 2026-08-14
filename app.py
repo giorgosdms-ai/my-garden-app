@@ -91,15 +91,12 @@ def get_orthodox_easter(year):
   else:
     day = f - 9
     month = 4
-  # Διόρθωση Ιουλιανού -> Γρηγοριανού ημερολογίου (+13 μέρες)
   easter_julian = date(year, month, day)
   return easter_julian + timedelta(days=13)
 
 
-# Επιστρέφει λεξικό με όλες τις αργίες του έτους
 def get_greek_holidays(year):
   easter = get_orthodox_easter(year)
-
   holidays = {
       f"{year}-01-01": "Πρωτοχρονιά",
       f"{year}-01-06": "Θεοφάνεια",
@@ -109,7 +106,6 @@ def get_greek_holidays(year):
       f"{year}-10-28": "28η Οκτωβρίου",
       f"{year}-12-25": "Χριστούγεννα",
       f"{year}-12-26": "Σύναξη Θεοτόκου",
-      # Κινητές
       (easter - timedelta(days=48)).strftime("%Y-%m-%d"): "Καθαρά Δευτέρα",
       (easter - timedelta(days=2)).strftime("%Y-%m-%d"): "Μεγάλη Παρασκευή",
       (easter - timedelta(days=1)).strftime("%Y-%m-%d"): "Μεγάλο Σάββατο",
@@ -238,6 +234,7 @@ if password == PASSWORD_SECRET:
       "📌 **Επιλογή Προβολής:**",
       [
           "📅 Πλήρες Μηνιαίο Πρόγραμμα",
+          "💰 Πληρωμές Μήνα",
           "🔄 Συχνότητα Εβδομάδων (Α,Β,Γ,Δ)",
           "➕ Προσθήκη Νέου Τακτικού Κήπου",
       ],
@@ -347,31 +344,6 @@ if password == PASSWORD_SECRET:
         "🔍 Αναζήτηση Κήπου:", placeholder="Γράψε όνομα..."
     )
 
-    def render_month_picker(garden_idx, key_prefix):
-      g = st.session_state.my_gardens[garden_idx]
-      pm = g.get("paid_months", {})
-      paid_list = [m for m in MONTHS_SHORT if pm.get(m, False)]
-      status_text = "🟢 " + ", ".join(paid_list) if paid_list else "🔴 Καμία"
-
-      st.caption(f"**Πληρωμένοι Μήνες:** {status_text}")
-
-      for row in range(0, 12, 4):
-        cols = st.columns(4)
-        for col_idx in range(4):
-          m_idx = row + col_idx
-          if m_idx < 12:
-            m = MONTHS_SHORT[m_idx]
-            is_checked = pm.get(m, False)
-            new_val = cols[col_idx].checkbox(
-                m, value=is_checked, key=f"{key_prefix}_{m}_{garden_idx}"
-            )
-            if new_val != is_checked:
-              st.session_state.my_gardens[garden_idx]["paid_months"][
-                  m
-              ] = new_val
-              save_data()
-              safe_rerun()
-
     if search_query.strip():
       st.subheader(f"🔎 Αποτελέσματα για: '{search_query}'")
       for idx, g in enumerate(st.session_state.my_gardens):
@@ -384,7 +356,7 @@ if password == PASSWORD_SECRET:
           st.write(
               f"📌 **{g['name']}** | {g['day']} | **Εβδομάδες:** {weeks_str}"
           )
-          render_month_picker(idx, "search")
+          st.caption(f"📝 Σημειώσεις: {g.get('notes', 'Καμία')}")
           st.divider()
     else:
       num_days = calendar.monthrange(selected_year, selected_month_num)[1]
@@ -541,10 +513,8 @@ if password == PASSWORD_SECRET:
                 f"🌿 **{g['name']}**", key=f"chk_{date_str}_{idx}_{g['name']}"
             )
 
-            with st.expander(
-                f"📝 Σημειώσεις & Πληρωμές ({g['name']})", expanded=False
-            ):
-              render_month_picker(idx, f"main_{date_str}")
+            # 📝 ΜΟΝΟ ΣΗΜΕΙΩΣΗ (ΧΩΡΙΣ ΠΛΗΡΩΜΕΣ ΕΔΩ)
+            with st.expander(f"📝 Σημείωση ({g['name']})", expanded=False):
               user_note = st.text_area(
                   "Σημείωση Κήπου:",
                   value=g.get("notes", ""),
@@ -558,7 +528,59 @@ if password == PASSWORD_SECRET:
         st.markdown("---")
 
   # -------------------------------------------------------------
-  # 2️⃣ ΚΑΡΤΕΛΑ ΡΥΘΜΙΣΗΣ ΕΒΔΟΜΑΔΩΝ (Α, Β, Γ, Δ)
+  # 2️⃣ ΚΑΡΤΕΛΑ ΠΛΗΡΩΜΩΝ ΜΗΝΑ (ΞΕΧΩΡΙΣΤΗ ΕΝΟΤΗΤΑ)
+  # -------------------------------------------------------------
+  elif view_mode == "💰 Πληρωμές Μήνα":
+    st.subheader("💰 Διαχείριση Πληρωμών Μήνα")
+
+    pay_month = st.selectbox(
+        "Επίλεξε Μήνα για έλεγχο πληρωμών:",
+        MONTHS_SHORT,
+        index=datetime.now().month - 1,
+        format_func=lambda x: MONTHS_FULL[MONTHS_SHORT.index(x)],
+    )
+
+    paid_count = 0
+    total_gardens = len(st.session_state.my_gardens)
+
+    st.divider()
+
+    for idx, g in enumerate(st.session_state.my_gardens):
+      pm = g.get("paid_months", {})
+      is_paid = pm.get(pay_month, False)
+
+      if is_paid:
+        paid_count += 1
+
+      c_check, c_name, c_day = st.columns([0.15, 0.55, 0.30])
+
+      new_val = c_check.checkbox(
+          "Πληρώθηκε", value=is_paid, key=f"pay_page_{pay_month}_{idx}"
+      )
+      c_name.markdown(f"**{g['name']}**")
+      c_day.caption(f"🗓️ {g['day']}")
+
+      if new_val != is_paid:
+        if "paid_months" not in st.session_state.my_gardens[idx]:
+          st.session_state.my_gardens[idx]["paid_months"] = {
+              m: False for m in MONTHS_SHORT
+          }
+        st.session_state.my_gardens[idx]["paid_months"][pay_month] = new_val
+        save_data()
+        safe_rerun()
+
+    st.divider()
+
+    # 📊 ΣΤΑΤΙΣΤΙΚΑ ΠΛΗΡΩΜΩΝ
+    if total_gardens > 0:
+      pct = int((paid_count / total_gardens) * 100)
+      st.info(
+          f"📊 **Σύνολο Πληρωμών για {MONTHS_FULL[MONTHS_SHORT.index(pay_month)]}:**"
+          f" {paid_count} από {total_gardens} κήπους ({pct}%)"
+      )
+
+  # -------------------------------------------------------------
+  # 3️⃣ ΚΑΡΤΕΛΑ ΡΥΘΜΙΣΗΣ ΕΒΔΟΜΑΔΩΝ (Α, Β, Γ, Δ)
   # -------------------------------------------------------------
   elif view_mode == "🔄 Συχνότητα Εβδομάδων (Α,Β,Γ,Δ)":
     st.subheader("⚙️ Ρύθμιση Εβδομάδων ανά Κήπο")
@@ -593,7 +615,7 @@ if password == PASSWORD_SECRET:
         st.divider()
 
   # -------------------------------------------------------------
-  # 3️⃣ ΠΡΟΣΘΗΚΗ ΝΕΟΥ ΤΑΚΤΙΚΟΥ ΚΗΠΟΥ & ΔΙΑΓΡΑΦΕΣ
+  # 4️⃣ ΠΡΟΣΘΗΚΗ ΝΕΟΥ ΤΑΚΤΙΚΟΥ ΚΗΠΟΥ & ΔΙΑΓΡΑΦΕΣ
   # -------------------------------------------------------------
   else:
     st.subheader("➕ Προσθήκη Νέου Τακτικού Κήπου")
