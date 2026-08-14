@@ -330,8 +330,7 @@ if password == PASSWORD_SECRET:
                         st.warning("Συμπλήρωσε το όνομα του ατόμου!")
                     elif start_d > end_d:
                         st.error(
-                            "Η ημερομηνία 'Από' δεν μπορεί να είναι μετά την ημερομηνία"
-                            " 'Έως'!"
+                            "Η ημερομηνία 'Από' δεν μπορεί να είναι μετά την ημερομηνία 'Έως'!"
                         )
                     else:
                         new_leave = {
@@ -599,109 +598,81 @@ if password == PASSWORD_SECRET:
 
             if new_val != is_paid:
                 if "paid_months" not in st.session_state.my_gardens[idx]:
-                    st.session_state.my_gardens[idx]["paid_months"] = {
-                        m: False for m in MONTHS_SHORT
-                    }
+                    st.session_state.my_gardens[idx]["paid_months"] = {m: False for m in MONTHS_SHORT}
                 st.session_state.my_gardens[idx]["paid_months"][pay_month] = new_val
                 save_data()
                 safe_rerun()
 
         st.divider()
-
-        # 📊 ΣΤΑΤΙΣΤΙΚΑ ΠΛΗΡΩΜΩΝ
-        if total_gardens > 0:
-            pct = int((paid_count / total_gardens) * 100)
-            st.info(
-                f"📊 **Σύνολο Πληρωμών για {MONTHS_FULL[MONTHS_SHORT.index(pay_month)]}:**"
-                f" {paid_count} από {total_gardens} κήπους ({pct}%)"
-            )
+        st.info(f"📊 **Συνολικές Πληρωμές για {MONTHS_FULL[MONTHS_SHORT.index(pay_month)]}:** {paid_count} από {total_gardens} κήπους")
 
     # -------------------------------------------------------------
-    # 3️⃣ ΚΑΡΤΕΛΑ ΡΥΘΜΙΣΗΣ ΕΒΔΟΜΑΔΩΝ (Α, Β, Γ, Δ)
+    # 3️⃣ ΚΑΡΤΕΛΑ ΣΥΧΝΟΤΗΤΑΣ ΕΒΔΟΜΑΔΩΝ
     # -------------------------------------------------------------
     elif view_mode == "🔄 Συχνότητα Εβδομάδων (Α,Β,Γ,Δ)":
-        st.subheader("⚙️ Ρύθμιση Εβδομάδων ανά Κήπο")
+        st.subheader("🔄 Διαχείριση Συχνότητας Εβδομάδων Κήπων")
+        st.caption("Επίλεξε ποιες εβδομάδες του μήνα επισκέπτεσαι τον κάθε κήπο.")
 
-        for day in DAYS_GREEK[:6]:
-            day_gardens = [
-                (idx, g)
-                for idx, g in enumerate(st.session_state.my_gardens)
-                if g["day"] == day
-            ]
-            if day_gardens:
-                st.markdown(f"### 🗓️ {day}")
-                for idx, g in day_gardens:
-                    st.write(f"🌿 **{g['name']}**")
-                    cols = st.columns(4)
-                    current_weeks = g.get("weeks", [])
-                    new_weeks = []
+        for idx, g in enumerate(st.session_state.my_gardens):
+            with st.expander(f"🌿 {g['name']} ({g['day']})", expanded=False):
+                current_weeks = g.get("weeks", ALL_WEEKS.copy())
+                
+                selected_weeks = []
+                col_w1, col_w2 = st.columns(2)
+                
+                with col_w1:
+                    if st.checkbox("Εβδομάδα Α", value="Εβδομάδα Α" in current_weeks, key=f"week_A_{idx}"):
+                        selected_weeks.append("Εβδομάδα Α")
+                    if st.checkbox("Εβδομάδα Β", value="Εβδομάδα Β" in current_weeks, key=f"week_B_{idx}"):
+                        selected_weeks.append("Εβδομάδα Β")
+                with col_w2:
+                    if st.checkbox("Εβδομάδα Γ", value="Εβδομάδα Γ" in current_weeks, key=f"week_C_{idx}"):
+                        selected_weeks.append("Εβδομάδα Γ")
+                    if st.checkbox("Εβδομάδα Δ", value="Εβδομάδα Δ" in current_weeks, key=f"week_D_{idx}"):
+                        selected_weeks.append("Εβδομάδα Δ")
 
-                    for w_idx, w_code in enumerate(ALL_WEEKS):
-                        is_selected = w_code in current_weeks
-                        label = w_code.replace("Εβδομάδα ", "Εβδ. ")
-                        if cols[w_idx].checkbox(
-                            label, value=is_selected, key=f"week_set_{idx}_{w_code}"
-                        ):
-                            new_weeks.append(w_code)
-
-                    if set(new_weeks) != set(current_weeks):
-                        st.session_state.my_gardens[idx]["weeks"] = new_weeks
-                        save_data()
-                        safe_rerun()
-
-                st.divider()
+                if selected_weeks != current_weeks:
+                    st.session_state.my_gardens[idx]["weeks"] = selected_weeks
+                    save_data()
+                    safe_rerun()
 
     # -------------------------------------------------------------
-    # 4️⃣ ΠΡΟΣΘΗΚΗ ΝΕΟΥ ΤΑΚΤΙΚΟΥ ΚΗΠΟΥ & ΔΙΑΓΡΑΦΕΣ
+    # 4️⃣ ΠΡΟΣΘΗΚΗ ΝΕΟΥ ΤΑΚΤΙΚΟΥ ΚΗΠΟΥ
     # -------------------------------------------------------------
-    else:
+    elif view_mode == "➕ Προσθήκη Νέου Τακτικού Κήπου":
         st.subheader("➕ Προσθήκη Νέου Τακτικού Κήπου")
-        new_name = st.text_input("Όνομα Κήπου / Πελάτη:")
-        new_day = st.selectbox("Ημέρα Εβδομάδας:", DAYS_GREEK[:6])
 
-        st.write("Εβδομάδες που πηγαίνεις:")
-        w_a = st.checkbox("Εβδομάδα Α (1η-7η)", value=True)
-        w_b = st.checkbox("Εβδομάδα Β (8η-14η)", value=True)
-        w_c = st.checkbox("Εβδομάδα Γ (15η-21η)", value=True)
-        w_d = st.checkbox("Εβδομάδα Δ (22η-31η)", value=True)
+        new_garden_name = st.text_input("Όνομα Νέου Κήπου:")
+        new_garden_day = st.selectbox("Ημέρα Επίσκεψης:", DAYS_GREEK[:6]) # Εκτός Κυριακής
+        
+        st.write("**Επιλογή Εβδομάδων:**")
+        nc1, nc2 = st.columns(2)
+        n_wA = nc1.checkbox("Εβδομάδα Α", value=True, key="new_wA")
+        n_wB = nc1.checkbox("Εβδομάδα Β", value=True, key="new_wB")
+        n_wC = nc2.checkbox("Εβδομάδα Γ", value=True, key="new_wC")
+        n_wD = nc2.checkbox("Εβδομάδα Δ", value=True, key="new_wD")
 
-        selected_weeks = []
-        if w_a:
-            selected_weeks.append("Εβδομάδα Α")
-        if w_b:
-            selected_weeks.append("Εβδομάδα Β")
-        if w_c:
-            selected_weeks.append("Εβδομάδα Γ")
-        if w_d:
-            selected_weeks.append("Εβδομάδα Δ")
+        new_garden_notes = st.text_area("Αρχικές Σημειώσεις (προαιρετικά):")
 
-        if st.button("✅ Προσθήκη Κήπου"):
-            if new_name.strip():
+        if st.button("💾 Αποθήκευση Νέου Κήπου"):
+            if not new_garden_name.strip():
+                st.warning("Παρακαλώ συμπληρώστε όνομα κήπου!")
+            else:
+                chosen_weeks = []
+                if n_wA: chosen_weeks.append("Εβδομάδα Α")
+                if n_wB: chosen_weeks.append("Εβδομάδα Β")
+                if n_wC: chosen_weeks.append("Εβδομάδα Γ")
+                if n_wD: chosen_weeks.append("Εβδομάδα Δ")
+
                 default_paid = {m: False for m in MONTHS_SHORT}
-                st.session_state.my_gardens.append({
-                    "name": new_name,
-                    "day": new_day,
-                    "weeks": selected_weeks,
-                    "notes": "",
-                    "paid_months": default_paid,
-                })
+                new_entry = {
+                    "name": new_garden_name.strip(),
+                    "day": new_garden_day,
+                    "weeks": chosen_weeks,
+                    "notes": new_garden_notes.strip(),
+                    "paid_months": default_paid.copy(),
+                }
+                st.session_state.my_gardens.append(new_entry)
                 save_data()
-                st.success(f"Ο κήπος '{new_name}' προστέθηκε!")
+                st.success(f"Ο κήπος '{new_garden_name.strip()}' προστέθηκε επιτυχώς!")
                 safe_rerun()
-
-        st.divider()
-
-        st.subheader("🗑️ Διαγραφή Τακτικού Κήπου")
-        garden_names = [g["name"] for g in st.session_state.my_gardens]
-        if garden_names:
-            to_delete = st.selectbox("Επίλεξε κήπο για διαγραφή:", garden_names)
-            if st.button("🗑️ Διαγραφή Κήπου"):
-                st.session_state.my_gardens = [
-                    g for g in st.session_state.my_gardens if g["name"] != to_delete
-                ]
-                save_data()
-                st.success(f"Ο κήπος '{to_delete}' διαγράφηκε!")
-                safe_rerun()
-
-elif password != "":
-    st.error("❌ Λάθος κωδικός πρόσβασης!")
