@@ -78,7 +78,7 @@ MONTHS_FULL = [
 ]
 
 
-# Υπολογισμός Ορθόδοξου Πάσχα (Meeus/Jones/Butcher algorithm)
+# Υπολογισμός Ορθόδοξου Πάσχα
 def get_orthodox_easter(year):
   a = year % 19
   b = year % 4
@@ -200,16 +200,30 @@ def load_data():
           extras = content.get("extra_events", [])
           leaves = content.get("leaves", [])
 
-        # Αυτόματη ενημέρωση συγκεκριμένων κήπων αν υπάρχουν ήδη αποθηκευμένοι
-        default_map = {
-            "28ης": WEEKS_A_ONLY,
-            "Αγίας Λαύρας": WEEKS_A_ONLY,
-            "Αιακού": WEEKS_D_ONLY,
-            "Ελευθερία": WEEKS_D_ONLY,
-        }
-        for g in gardens:
-          if g["name"] in default_map:
-            g["weeks"] = default_map[g["name"]]
+        # Έλεγχος αν υπάρχουν οι κήποι, αλλιώς τους προσθέτουμε ή τους διορθώνουμε
+        garden_names = [g["name"] for g in gardens]
+
+        for name, day, weeks in [
+            ("28ης", "Δευτέρα", WEEKS_A_ONLY),
+            ("Αγίας Λαύρας", "Δευτέρα", WEEKS_A_ONLY),
+            ("Αιακού", "Δευτέρα", WEEKS_D_ONLY),
+            ("Ελευθερία", "Δευτέρα", WEEKS_D_ONLY),
+        ]:
+          found = False
+          for g in gardens:
+            if g["name"] == name:
+              g["weeks"] = weeks
+              found = True
+              break
+          if not found:
+            default_paid = {m: False for m in MONTHS_SHORT}
+            gardens.append({
+                "name": name,
+                "day": day,
+                "weeks": weeks,
+                "notes": "",
+                "paid_months": default_paid,
+            })
 
         return gardens, extras, leaves
     except:
