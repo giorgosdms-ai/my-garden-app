@@ -6,15 +6,15 @@ from datetime import datetime
 
 st.set_page_config(page_title="Πρόγραμμα Κήπων", page_icon="🌿", layout="centered")
 
-# Custom CSS για πολύ μαζεμένη προβολή στο κινητό
+# CSS για σφιχτή & καθαρή εμφάνιση σε κινητά
 st.markdown("""
 <style>
     .block-container { padding-top: 0.8rem; padding-bottom: 1.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
-    div[data-testid="stVerticalBlock"] > div { gap: 0.15rem; }
-    h3 { margin-top: 0.5rem !important; margin-bottom: 0.1rem !important; font-size: 1.1rem !important; color: #ff4b4b; }
-    hr { margin-top: 0.3rem !important; margin-bottom: 0.3rem !important; }
+    div[data-testid="stVerticalBlock"] > div { gap: 0.2rem; }
+    h3 { margin-top: 0.6rem !important; margin-bottom: 0.2rem !important; font-size: 1.1rem !important; color: #ff4b4b; }
+    hr { margin-top: 0.4rem !important; margin-bottom: 0.4rem !important; }
     .stCheckbox { margin-bottom: 0px; }
-    div[data-testid="stPopover"] > button { padding: 1px 6px; font-size: 0.75rem; margin-top: 0px; }
+    .streamlit-expanderHeader { font-size: 0.95rem !important; font-weight: 600; padding: 4px 8px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -28,7 +28,7 @@ DAYS_GREEK = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", 
 MONTHS_SHORT = ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαι", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
 MONTHS_FULL = ["Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος", "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"]
 
-# 🛠️ Συνάρτηση υπολογισμού εβδομάδας μήνα (Α, Β, Γ, Δ)
+# 🛠️ Υπολογισμός εβδομάδας (Α, Β, Γ, Δ)
 def get_week_name(day_num):
     if day_num <= 7:
         return "Εβδομάδα Α"
@@ -39,7 +39,6 @@ def get_week_name(day_num):
     else:
         return "Εβδομάδα Δ"
 
-# 📁 Αποθήκευση & Φόρτωση
 def save_data():
     data = {
         "my_gardens": st.session_state.my_gardens,
@@ -57,7 +56,7 @@ def load_data():
             return content.get("my_gardens", []), content.get("extra_events", [])
     return None, None
 
-# 🌿 ΑΡΧΙΚΗ ΛΙΣΤΑ ΚΗΠΩΝ (Μπορείς να προσθέσεις/αλλάξεις όσα ονόματα θέλεις εδώ)
+# 🌿 ΠΛΗΡΗΣ ΑΡΧΙΚΗ ΛΙΣΤΑ ΚΗΠΩΝ
 def get_default_gardens():
     default_paid = {m: False for m in MONTHS_SHORT}
     return [
@@ -65,10 +64,9 @@ def get_default_gardens():
         {"name": "Αχιλλέας", "day": "Δευτέρα", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
         {"name": "Ξανθος", "day": "Δευτέρα", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
         
-        # ΤΡΙΤΗ (Προστέθηκαν όλοι οι κήποι της Τρίτης!)
+        # ΤΡΙΤΗ (Όλοι οι κήποι)
         {"name": "Γλυφαδα", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
         {"name": "Αλίκη", "day": "Τρίτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
-        {"name": "Κήπος Τρίτης 3", "day": "Τρίτη", "weeks": FORTNIGHT_AC, "notes": "", "paid_months": default_paid.copy()},
         
         # ΤΕΤΑΡΤΗ
         {"name": "Σταθης", "day": "Τετάρτη", "weeks": ALL_WEEKS, "notes": "", "paid_months": default_paid.copy()},
@@ -82,12 +80,12 @@ def get_default_gardens():
 
 st.title("🌿 Πρόγραμμα Κήπων")
 
-# Επαναφορά Αρχικών Δεδομένων στο Sidebar
-if st.sidebar.button("⚠️ Επαναφορά Αρχικών Κήπων"):
+# Κουμπί ανανέωσης λίστας κήπων
+if st.sidebar.button("🔄 Ενημέρωση / Επαναφορά Κήπων"):
     st.session_state.my_gardens = get_default_gardens()
     st.session_state.extra_events = []
     save_data()
-    st.sidebar.success("Εγινε επαναφορά!")
+    st.sidebar.success("Οι κήποι ενημερώθηκαν!")
     st.rerun()
 
 password = st.text_input("🔑 Κωδικός πρόσβασης:", type="password")
@@ -99,7 +97,7 @@ if password == PASSWORD_SECRET:
         st.session_state.extra_events = saved_e if saved_e is not None else []
         save_data()
 
-    view_mode = st.radio("📌 **Προβολή:**", ["📅 Πλήρες Μηνιαίο Πρόγραμμα", "➕ Προσθήκη / Διαχείριση Κήπων"], horizontal=True)
+    view_mode = st.radio("📌 **Προβολή:**", ["📅 Πλήρες Μηνιαίο Πρόγραμμα", "➕ Προσθήκη / Διαχείριση"], horizontal=True)
 
     if view_mode == "📅 Πλήρες Μηνιαίο Πρόγραμμα":
         
@@ -141,47 +139,41 @@ if password == PASSWORD_SECRET:
         else:
             num_days = calendar.monthrange(selected_year, selected_month_num)[1]
 
-            # 📆 ΕΜΦΑΝΙΣΗ ΟΛΩΝ ΤΩΝ ΗΜΕΡΩΝ ΤΟΥ ΜΗΝΑ
+            # 📆 ΕΜΦΑΝΙΣΗ ΗΜΕΡΩΝ ΜΗΝΑ
             for day_num in range(1, num_days + 1):
                 day_dt = datetime(selected_year, selected_month_num, day_num)
                 date_str = day_dt.strftime("%Y-%m-%d")
                 greek_day_name = DAYS_GREEK[day_dt.weekday()]
                 
-                # Παραλείπουμε τις Κυριακές
                 if greek_day_name == "Κυριακή":
                     continue
 
                 week_code = get_week_name(day_num)
 
-                # 1. Βρες ΟΛΟΥΣ τους τακτικούς κήπους της ημέρας & εβδομάδας
                 matching_gardens = [
                     (idx, g) for idx, g in enumerate(st.session_state.my_gardens)
                     if g["day"] == greek_day_name and week_code in g.get("weeks", [])
                 ]
 
-                # 2. Βρες έκτακτα ραντεβού
                 matching_extras = [
                     ev for ev in st.session_state.extra_events
                     if ev["date"] == date_str
                 ]
 
-                # Τίτλος Ημέρας
                 st.markdown(f"### 📌 {greek_day_name} {day_num:02d}/{selected_month_num:02d} <small style='color:gray;'>({week_code})</small>", unsafe_allow_html=True)
 
-                # ⚡ Έκτακτα
                 if matching_extras:
                     for ex in matching_extras:
                         st.warning(f"⚡ **{ex['time']} - {ex['title']}**" + (f" ({ex['notes']})" if ex.get('notes') else ""))
 
-                # 🌿 ΕΜΦΑΝΙΣΗ ΟΛΩΝ ΤΩΝ ΚΗΠΩΝ
                 if not matching_gardens and not matching_extras:
                     st.caption("_Καμία εργασία_")
                 else:
                     for idx, g in matching_gardens:
-                        col_main, col_btn = st.columns([3.2, 1])
-                        col_main.checkbox(f"🌿 **{g['name']}**", key=f"chk_{date_str}_{idx}_{g['name']}")
+                        # Σφιχτή & Καθαρή Εμφάνιση
+                        st.checkbox(f"🌿 **{g['name']}**", key=f"chk_{date_str}_{idx}_{g['name']}")
                         
-                        with col_btn.popover("📝"):
+                        with st.expander(f"📝 Σημειώσεις & Πληρωμές ({g['name']})", expanded=False):
                             render_month_picker(idx, f"main_{date_str}")
                             user_note = st.text_area("Σημείωση:", value=g.get("notes", ""), key=f"note_{date_str}_{idx}", height=60)
                             if user_note != g.get("notes", ""):
@@ -191,7 +183,7 @@ if password == PASSWORD_SECRET:
                 st.markdown("---")
 
     else:
-        # --- ΠΡΟΣΘΗΚΗ / ΔΙΑΧΕΙΡΙΣΗ ΚΗΠΩΝ & ΕΚΤΑΚΤΩΝ ---
+        # --- ΠΡΟΣΘΗΚΗ / ΔΙΑΧΕΙΡΙΣΗ ---
         tab1, tab2, tab3 = st.tabs(["➕ Νέος Κήπος", "⚡ Νέο Έκτακτο", "🗑️ Διαγραφή Κήπου"])
 
         with tab1:
@@ -222,7 +214,7 @@ if password == PASSWORD_SECRET:
                         "paid_months": default_paid
                     })
                     save_data()
-                    st.success(f"Ο κήπος '{new_name}' προστέθηκε επιτυχώς!")
+                    st.success(f"Ο κήπος '{new_name}' προστέθηκε!")
                     st.rerun()
 
         with tab2:
