@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 
-# Ασφαλής ανανέωση σελίδας για κάθε έκδοση Streamlit
+# Ασφαλής ανανέωση σελίδας
 def safe_rerun():
   if hasattr(st, "rerun"):
     st.rerun()
@@ -17,14 +17,14 @@ def safe_rerun():
     st.experimental_rerun()
 
 
-# CSS για καθαρή & ελαφριά εμφάνιση σε κινητά
+# CSS για καθαρή & σφιχτή εμφάνιση σε κινητά
 st.markdown(
     """
 <style>
     .block-container { padding-top: 1rem; padding-bottom: 2rem; padding-left: 0.5rem; padding-right: 0.5rem; }
     div[data-testid="stVerticalBlock"] > div { gap: 0.3rem; }
-    h3 { margin-top: 0.8rem !important; margin-bottom: 0.3rem !important; font-size: 1.15rem !important; color: #2e7d32; }
-    hr { margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+    h3 { margin-top: 0.5rem !important; margin-bottom: 0.2rem !important; font-size: 1.1rem !important; color: #2e7d32; }
+    hr { margin-top: 0.4rem !important; margin-bottom: 0.4rem !important; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -180,6 +180,9 @@ if password == PASSWORD_SECRET:
     st.session_state.extra_events = saved_e if saved_e is not None else []
     save_data()
 
+  if "active_add_date" not in st.session_state:
+    st.session_state.active_add_date = None
+
   view_mode = st.radio(
       "📌 **Επιλογή Προβολής:**",
       [
@@ -205,32 +208,6 @@ if password == PASSWORD_SECRET:
     selected_year = col_y.number_input(
         "Έτος:", value=datetime.now().year, step=1
     )
-
-    # ⚡ ΓΡΗΓΟΡΗ & ΕΛΑΦΡΙΑ ΠΡΟΣΘΗΚΗ ΕΞΤΡΑΔΑΚΙΟΥ
-    with st.expander("⚡ **Ταχεία Προσθήκη Εξτραδάκι**", expanded=False):
-      ex_date = st.date_input("Ημερομηνία:", datetime.now())
-      ex_name = st.text_input("Όνομα Πελάτη:", placeholder="π.χ. Γιώργος")
-      ex_title = st.text_input(
-          "Περιγραφή Εργασίας:", placeholder="π.χ. Κλάδεμα / Ράντισμα"
-      )
-      ex_note = st.text_input("Σημείωση (προαιρετικά):")
-
-      if st.button("✅ Προσθήκη Εξτραδάκι"):
-        if ex_name.strip() or ex_title.strip():
-          new_extra = {
-              "name": ex_name.strip() if ex_name.strip() else "Εξτραδάκι",
-              "date": ex_date.strftime("%Y-%m-%d"),
-              "title": (
-                  ex_title.strip() if ex_title.strip() else "Έκτακτη εργασία"
-              ),
-              "notes": ex_note.strip(),
-          }
-          st.session_state.extra_events.append(new_extra)
-          save_data()
-          st.success("Προστέθηκε επιτυχώς!")
-          safe_rerun()
-        else:
-          st.warning("Συμπλήρωσε όνομα ή περιγραφή!")
 
     search_query = st.text_input(
         "🔍 Αναζήτηση Κήπου:", placeholder="Γράψε όνομα..."
@@ -301,19 +278,82 @@ if password == PASSWORD_SECRET:
             if ev.get("date") == date_str
         ]
 
-        st.markdown(
-            f"### 📌 {greek_day_name} {day_num:02d} {month_name}"
-            f" <small style='color:#555;'>({week_code})</small>",
-            unsafe_allow_html=True,
-        )
+        # 📌 ΤΙΤΛΟΣ ΗΜΕΡΑΣ + ΚΟΥΜΠΙ «➕ ΕΞΤΡΑΔΑΚΙ»
+        col_head1, col_head2 = st.columns([0.70, 0.30])
+        with col_head1:
+          st.markdown(
+              f"### 📌 {greek_day_name} {day_num:02d} {month_name}"
+              f" <small style='color:#555;'>({week_code})</small>",
+              unsafe_allow_html=True,
+          )
+        with col_head2:
+          if st.button("➕ Εξτραδάκι", key=f"btn_add_trigger_{date_str}"):
+            if st.session_state.active_add_date == date_str:
+              st.session_state.active_add_date = None
+            else:
+              st.session_state.active_add_date = date_str
+            safe_rerun()
 
-        # ⚡ ΕΜΦΑΝΙΣΗ ΕΞΤΡΑΔΑΚΙΩΝ
+        # ⚡ ΦΟΡΜΑ ΠΡΟΣΘΗΚΗΣ ΕΞΤΡΑΔΑΚΙΟΥ (ΑΝΟΙΓΕΙ ΣΤΗ ΣΥΓΚΕΚΡΙΜΕΝΗ ΜΕΡΑ)
+        if st.session_state.active_add_date == date_str:
+          st.info(
+              f"⚡ **Προσθήκη Εξτραδακίου για {greek_day_name}"
+              f" {day_num:02d}/{selected_month_num:02d}:**"
+          )
+          c1, c2 = st.columns([0.65, 0.35])
+          ex_name = c1.text_input(
+              "Όνομα Πελάτη:",
+              key=f"ex_name_{date_str}",
+              placeholder="π.χ. Γιώργος",
+          )
+          ex_time = c2.text_input(
+              "⏰ Ώρα:", key=f"ex_time_{date_str}", placeholder="π.χ. 10:30"
+          )
+          ex_title = st.text_input(
+              "Περιγραφή Εργασίας:",
+              key=f"ex_title_{date_str}",
+              placeholder="π.χ. Κλάδεμα / Ράντισμα",
+          )
+          ex_note = st.text_input(
+              "Σημείωση (προαιρετικά):", key=f"ex_note_{date_str}"
+          )
+
+          col_btn1, col_btn2 = st.columns(2)
+          if col_btn1.button("✅ Αποθήκευση", key=f"save_ex_{date_str}"):
+            if ex_name.strip() or ex_title.strip():
+              new_extra = {
+                  "name": (
+                      ex_name.strip() if ex_name.strip() else "Εξτραδάκι"
+                  ),
+                  "time": ex_time.strip(),
+                  "date": date_str,
+                  "title": (
+                      ex_title.strip()
+                      if ex_title.strip()
+                      else "Έκτακτη εργασία"
+                  ),
+                  "notes": ex_note.strip(),
+              }
+              st.session_state.extra_events.append(new_extra)
+              save_data()
+              st.session_state.active_add_date = None
+              safe_rerun()
+            else:
+              st.warning("Συμπλήρωσε τουλάχιστον Όνομα ή Εργασία!")
+
+          if col_btn2.button("❌ Ακύρωση", key=f"cancel_ex_{date_str}"):
+            st.session_state.active_add_date = None
+            safe_rerun()
+
+        # 🚨 ΕΜΦΑΝΙΣΗ ΕΞΤΡΑΔΑΚΙΩΝ (ΜΕ ΩΡΑ, ΟΝΟΜΑ & ΚΟΥΜΠΙ ΔΙΑΓΡΑΦΗΣ)
         if matching_extras:
           for real_ex_idx, ex in matching_extras:
-            col_ex1, col_ex2 = st.columns([0.82, 0.18])
+            col_ex1, col_ex2 = st.columns([0.84, 0.16])
             with col_ex1:
+              time_str = f" ⏰ {ex['time']}" if ex.get("time") else ""
               st.warning(
-                  f"⚡ **[{ex.get('name', 'Εξτραδάκι')}]** {ex.get('title', '')}"
+                  f"⚡ **[{ex.get('name', 'Εξτραδάκι')}]**{time_str} -"
+                  f" **{ex.get('title', '')}**"
                   + (
                       f" <br>_Σημείωση: {ex['notes']}_"
                       if ex.get("notes")
@@ -327,8 +367,12 @@ if password == PASSWORD_SECRET:
                 save_data()
                 safe_rerun()
 
-        # ΤΑΚΤΙΚΟΙ ΚΗΠΟΙ
-        if not matching_gardens and not matching_extras:
+        # 🌿 ΕΜΦΑΝΙΣΗ ΤΑΚΤΙΚΩΝ ΚΗΠΩΝ
+        if (
+            not matching_gardens
+            and not matching_extras
+            and st.session_state.active_add_date != date_str
+        ):
           st.caption("_Καμία προγραμματισμένη εργασία_")
         else:
           for idx, g in matching_gardens:
@@ -441,4 +485,3 @@ if password == PASSWORD_SECRET:
 
 elif password != "":
   st.error("❌ Λάθος κωδικός πρόσβασης!")
-
