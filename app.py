@@ -10,18 +10,20 @@ import gspread
 # -------------------------------------------------------------
 # 1. Σύνδεση με Google Sheets (Authentication)
 # -------------------------------------------------------------
+# -------------------------------------------------------------
 @st.cache_resource
 def get_sheet():
     # Παίρνουμε αντίγραφο του dictionary από τα secrets
     creds_dict = dict(st.secrets["gcp_service_account"])
     
-    # Διόρθωση των newlines στο private_key για να μην βγάζει MalformedError
+    # Διόρθωση και καθαρισμός του private key
     private_key = creds_dict["private_key"]
-    private_key = private_key.replace("\\n", "\n")
+    # Αντικαθιστούμε τα literal "\n" με πραγματικές αλλαγές γραμμής και αφαιρούμε κενά
+    private_key = private_key.replace("\\n", "\n").strip()
     
-    # Βεβαιωνόμαστε ότι το κλειδί έχει τη σωστή δομή
+    # Βεβαιωνόμαστε ότι το κλειδί έχει τη σωστή δομή (headers)
     if not private_key.startswith("-----BEGIN PRIVATE KEY-----"):
-        private_key = f"-----BEGIN PRIVATE KEY-----\n{private_key.strip()}\n-----END PRIVATE KEY-----\n"
+        private_key = f"-----BEGIN PRIVATE KEY-----\n{private_key}\n-----END PRIVATE KEY-----\n"
         
     creds_dict["private_key"] = private_key
 
@@ -41,6 +43,7 @@ def get_sheet():
     return client.open_by_key(sheet_id).sheet1
 
 sheet = get_sheet()
+
 
 # -------------------------------------------------------------
 # 2. Ρυθμίσεις Εφαρμογής & CSS
